@@ -1,23 +1,20 @@
-# Use an official lightweight Python image
-FROM python:3.9-slim
+# Use official Python image
+FROM python:3.10
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy project files
-COPY . /app
+# Copy project files to the container
+COPY . .
 
 # Install dependencies
-RUN pip install --upgrade pip \
-    && pip install -r requirements.txt \
-    && apt-get update && apt-get install -y curl
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Expose port 8000 (default Django runserver port)
+# Expose the application port
 EXPOSE 8000
 
-# Start the application using gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "lifeline.wsgi:application"]
+# Run migrations and start Django server
+CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
