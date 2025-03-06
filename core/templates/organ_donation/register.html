@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="registration-prompt text-center mb-5">
+        <h1 class="display-4 mb-4">Join the Gift of Life ❤️</h1>
+        <p class="lead">Are you willing to join hands in saving lives through organ donation?</p>
+        <button id="joinButton" class="btn btn-light btn-lg px-5 mt-3">Yes, I Want to Help</button>
+    </div>
+
+    <div id="organSection" class="organ-section" style="display: none;">
+        <h2 class="text-center mb-4">Select the Organs You Wish to Donate</h2>
+        
+        <form id="organDonationForm" method="POST">
+            {% csrf_token %}
+            
+            <!-- Select All Option -->
+            <div class="mb-4 text-end">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="selectAllOrgans">
+                    <label class="form-check-label" for="selectAllOrgans">
+                        <strong>Select All Organs</strong>
+                    </label>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Organs Section -->
+                <div class="col-12">
+                    <h3 class="text-primary mb-3">Organs</h3>
+                    <div class="row g-3">
+                        {% for organ in organ_types %}
+                            {% if organ.category == 'organ' %}
+                            <div class="col-md-3">
+                                <div class="card organ-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ organ.name }}</h5>
+                                        <div class="form-check">
+                                            <input class="form-check-input organ-checkbox" type="checkbox" 
+                                                   name="organs[]" value="{{ organ.id }}" 
+                                                   id="organ_{{ organ.id }}">
+                                            <label class="form-check-label" for="organ_{{ organ.id }}">
+                                                I wish to donate
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Tissues Section -->
+                <div class="col-12">
+                    <h3 class="text-primary mb-3">Tissues</h3>
+                    <div class="row g-3">
+                        {% for organ in organ_types %}
+                            {% if organ.category == 'tissue' %}
+                            <div class="col-md-3">
+                                <div class="card organ-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ organ.name }}</h5>
+                                        <div class="form-check">
+                                            <input class="form-check-input organ-checkbox" type="checkbox" 
+                                                   name="organs[]" value="{{ organ.id }}" 
+                                                   id="organ_{{ organ.id }}">
+                                            <label class="form-check-label" for="organ_{{ organ.id }}">
+                                                I wish to donate
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Stem Cells Section -->
+                <div class="col-12">
+                    <h3 class="text-primary mb-3">Stem Cells</h3>
+                    <div class="row g-3">
+                        {% for organ in organ_types %}
+                            {% if organ.category == 'stem_cell' %}
+                            <div class="col-md-3">
+                                <div class="card organ-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ organ.name }}</h5>
+                                        <div class="form-check">
+                                            <input class="form-check-input organ-checkbox" type="checkbox" 
+                                                   name="organs[]" value="{{ organ.id }}" 
+                                                   id="organ_{{ organ.id }}">
+                                            <label class="form-check-label" for="organ_{{ organ.id }}">
+                                                I wish to donate
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <button type="submit" id="submitButton" class="btn btn-primary btn-lg px-5">Register as Organ Donor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Show organ section when "Join" button is clicked
+document.getElementById('joinButton').addEventListener('click', function() {
+    const organSection = document.getElementById('organSection');
+    organSection.style.display = 'block';
+    setTimeout(() => {
+        organSection.classList.add('visible');
+    }, 100);
+    
+    this.parentElement.style.display = 'none';
+});
+
+// Select All functionality
+document.getElementById('selectAllOrgans').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.organ-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
+// Update "Select All" when individual checkboxes change
+document.querySelectorAll('.organ-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const allCheckboxes = document.querySelectorAll('.organ-checkbox');
+        const selectAllCheckbox = document.getElementById('selectAllOrgans');
+        selectAllCheckbox.checked = Array.from(allCheckboxes).every(cb => cb.checked);
+    });
+});
+
+document.getElementById('organDonationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const selectedOrgans = [];
+    document.querySelectorAll('.organ-checkbox:checked').forEach(checkbox => {
+        selectedOrgans.push(checkbox.value);
+    });
+
+    if (selectedOrgans.length === 0) {
+        alert('Please select at least one organ or tissue to donate.');
+        return;
+    }
+
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    fetch('{% url "register_organ_donor" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            organs: selectedOrgans
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Registration successful!');
+            window.location.href = '{% url "matching_organ_requests" %}';
+        } else {
+            alert(data.message || 'An error occurred during registration. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during registration. Please try again.');
+    });
+});
+
+// Add click handler for the cards to toggle checkboxes
+document.querySelectorAll('.organ-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('form-check-input')) {
+            const checkbox = this.querySelector('.organ-checkbox');
+            checkbox.checked = !checkbox.checked;
+            // Trigger change event to update "Select All" checkbox
+            checkbox.dispatchEvent(new Event('change'));
+        }
+    });
+});
+</script>
+{% endblock %}

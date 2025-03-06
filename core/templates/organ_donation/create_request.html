@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h1 class="text-center text-primary mb-4">Create Organ Request</h1>
+            <p class="text-center text-muted mb-5">Please fill in the patient details and select the required organ(s)</p>
+
+            <form id="organRequestForm" method="POST">
+                {% csrf_token %}
+                
+                <!-- Patient Details Section -->
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3">
+                        <label for="patientName" class="form-label">Patient Name *</label>
+                        <input type="text" class="form-control" id="patientName" name="patient_name" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="patientAge" class="form-label">Patient Age *</label>
+                        <input type="number" class="form-control" id="patientAge" name="patient_age" required min="0" max="120">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="bloodGroup" class="form-label">Blood Group *</label>
+                        <select class="form-select" id="bloodGroup" name="patient_blood_group" required>
+                            <option value="">Select Blood Group</option>
+                            {% for choice in blood_group_choices %}
+                            <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12 mb-3">
+                        <label for="urgencyLevel" class="form-label">Urgency Level *</label>
+                        <select class="form-select" id="urgencyLevel" name="urgency_level" required>
+                            <option value="1">Normal</option>
+                            <option value="2">Urgent</option>
+                            <option value="3">Critical</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Organ Selection Section -->
+                <div class="organ-selection-section mb-4">
+                    <h3 class="text-primary mb-3">Select Required Organ/Tissue</h3>
+                    
+                    <!-- Organs Section -->
+                    <div class="mb-4">
+                        <h4 class="text-secondary mb-3">Organs</h4>
+                        <div class="row g-3">
+                            {% for organ in organ_types %}
+                                {% if organ.category == 'organ' %}
+                                <div class="col-md-3">
+                                    <div class="card organ-card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ organ.name }}</h5>
+                                            <div class="form-check">
+                                                <input class="form-check-input organ-checkbox" 
+                                                       type="radio" 
+                                                       name="organ_type" 
+                                                       value="{{ organ.id }}" 
+                                                       id="organ_{{ organ.id }}"
+                                                       required>
+                                                <label class="form-check-label" for="organ_{{ organ.id }}">
+                                                    Request this organ
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Tissues Section -->
+                    <div class="mb-4">
+                        <h4 class="text-secondary mb-3">Tissues</h4>
+                        <div class="row g-3">
+                            {% for organ in organ_types %}
+                                {% if organ.category == 'tissue' %}
+                                <div class="col-md-3">
+                                    <div class="card organ-card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ organ.name }}</h5>
+                                            <div class="form-check">
+                                                <input class="form-check-input organ-checkbox" 
+                                                       type="radio" 
+                                                       name="organ_type" 
+                                                       value="{{ organ.id }}" 
+                                                       id="organ_{{ organ.id }}">
+                                                <label class="form-check-label" for="organ_{{ organ.id }}">
+                                                    Request this tissue
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Stem Cells Section -->
+                    <div class="mb-4">
+                        <h4 class="text-secondary mb-3">Stem Cells</h4>
+                        <div class="row g-3">
+                            {% for organ in organ_types %}
+                                {% if organ.category == 'stem_cell' %}
+                                <div class="col-md-3">
+                                    <div class="card organ-card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ organ.name }}</h5>
+                                            <div class="form-check">
+                                                <input class="form-check-input organ-checkbox" 
+                                                       type="radio" 
+                                                       name="organ_type" 
+                                                       value="{{ organ.id }}" 
+                                                       id="organ_{{ organ.id }}">
+                                                <label class="form-check-label" for="organ_{{ organ.id }}">
+                                                    Request stem cells
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical Notes -->
+                <div class="mb-4">
+                    <label for="medicalNotes" class="form-label">Medical Notes *</label>
+                    <textarea class="form-control" id="medicalNotes" name="medical_notes" rows="4" required></textarea>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-lg px-5">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.organ-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+}
+
+.organ-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+.organ-card.selected {
+    border-color: #0d6efd;
+    background-color: #f8f9ff;
+}
+
+.card-title {
+    color: #2c3e50;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.form-check-label {
+    color: #6c757d;
+}
+
+.urgency-critical {
+    color: #dc3545;
+}
+
+.urgency-urgent {
+    color: #ffc107;
+}
+
+.urgency-normal {
+    color: #198754;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle organ card selection
+    document.querySelectorAll('.organ-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('form-check-input')) {
+                const checkbox = this.querySelector('.organ-checkbox');
+                checkbox.checked = true;
+                updateCardSelection(checkbox);
+            }
+        });
+    });
+
+    // Handle radio button changes
+    document.querySelectorAll('.organ-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateCardSelection(this);
+        });
+    });
+
+    function updateCardSelection(checkbox) {
+        // Remove selected class from all cards
+        document.querySelectorAll('.organ-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Add selected class to the checked card
+        if (checkbox.checked) {
+            checkbox.closest('.organ-card').classList.add('selected');
+        }
+    }
+
+    // Form submission
+    document.getElementById('organRequestForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch('{% url "create_organ_request" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Organ request created successfully!');
+                window.location.href = '{% url "hospital_home" %}';
+            } else {
+                alert(data.message || 'An error occurred while creating the request.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while creating the request.');
+        });
+    });
+
+    // Update urgency level color
+    document.getElementById('urgencyLevel').addEventListener('change', function() {
+        const urgencyClasses = ['urgency-normal', 'urgency-urgent', 'urgency-critical'];
+        this.classList.remove(...urgencyClasses);
+        
+        switch(this.value) {
+            case '1':
+                this.classList.add('urgency-normal');
+                break;
+            case '2':
+                this.classList.add('urgency-urgent');
+                break;
+            case '3':
+                this.classList.add('urgency-critical');
+                break;
+        }
+    });
+});
+</script>
+{% endblock %}

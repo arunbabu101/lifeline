@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user me-2"></i>Donor Contact Details
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="contact-info">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-user me-2"></i>Name:</strong> 
+                                {{ donor.get_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-phone me-2"></i>Phone:</strong> 
+                                {{ donor.phone }}
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-tint me-2"></i>Blood Group:</strong> 
+                                {{ donor.blood_group }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong><i class="fas fa-map-marker-alt me-2"></i>District:</strong> 
+                                {{ donor.district }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'donor_chat' donor.id %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-envelope me-2"></i>Message
+                        </a>
+                    </div>
+
+                    <a href="{% url 'blood_donor_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Donors
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

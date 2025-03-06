@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Matching Blood Requests -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0"><i class="bi bi-droplet-fill me-2"></i>Matching Blood Requests</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for request in matching_requests %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-danger border-opacity-25">
+                                <div class="card-header bg-danger bg-opacity-10">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-droplet me-2"></i>{{ request.blood_group }}
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <p class="card-text">
+                                            <strong><i class="bi bi-person me-2"></i>Patient:</strong> {{ request.patient_name|first }}***<br>
+                                            <strong><i class="bi bi-gender-ambiguous me-2"></i>Gender:</strong> {{ request.get_patient_gender_display }}<br>
+                                            <strong><i class="bi bi-hospital me-2"></i>Hospital:</strong> {{ request.hospital.name }}<br>
+                                            <strong><i class="bi bi-calendar-event me-2"></i>Posted:</strong> {{ request.created_at|date:"M d, Y" }}<br>
+                                            <strong><i class="bi bi-alarm me-2"></i>Required by:</strong> {{ request.required_by|date:"M d, Y" }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <button class="btn btn-outline-danger respond-btn" data-request-id="{{ request.id }}">
+                                            <i class="bi bi-heart me-1"></i>Respond
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="alert alert-info" role="alert">
+                                <i class="bi bi-info-circle me-2"></i>No matching blood requests found.
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- District Blood Requests -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-geo-alt-fill me-2"></i>Other Blood Requests in Your District</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for request in district_requests %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100 border-primary border-opacity-25">
+                                <div class="card-header bg-primary bg-opacity-10">
+                                    <h5 class="card-title mb-0">
+                                        <i class="bi bi-droplet me-2"></i>{{ request.blood_group }}
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <p class="card-text">
+                                            <strong><i class="bi bi-person me-2"></i>Patient:</strong> {{ request.patient_name|first }}***<br>
+                                            <strong><i class="bi bi-gender-ambiguous me-2"></i>Gender:</strong> {{ request.get_patient_gender_display }}<br>
+                                            <strong><i class="bi bi-hospital me-2"></i>Hospital:</strong> {{ request.hospital.name }}<br>
+                                            <strong><i class="bi bi-calendar-event me-2"></i>Posted:</strong> {{ request.created_at|date:"M d, Y" }}<br>
+                                            <strong><i class="bi bi-alarm me-2"></i>Required by:</strong> {{ request.required_by|date:"M d, Y" }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <button class="btn btn-outline-primary help-btn" data-request-id="{{ request.id }}">
+                                            <i class="bi bi-hand-thumbs-up me-1"></i>Help
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="alert alert-info" role="alert">
+                                <i class="bi bi-info-circle me-2"></i>No other blood requests in your district.
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <!-- History Buttons -->
+            <div class="d-flex flex-column gap-2 mb-4">
+                <button class="btn btn-secondary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#expiredRequests">
+                    <i class="bi bi-clock-history me-2"></i>Show Expired Requests
+                </button>
+                <button class="btn btn-danger w-100" type="button" data-bs-toggle="collapse" data-bs-target="#respondedRequests">
+                    <i class="bi bi-heart-fill me-2"></i>Show Responded Requests
+                </button>
+                <button class="btn btn-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#helpedRequests">
+                    <i class="bi bi-hand-thumbs-up-fill me-2"></i>Show Helped Requests
+                </button>
+            </div>
+        
+            <!-- Collapsible Sections -->
+            <div class="accordion" id="requestHistory">
+                <!-- Expired Requests -->
+                <div class="collapse mb-3" id="expiredRequests" data-bs-parent="#requestHistory">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">Expired Requests</h5>
+                        </div>
+                        <div class="card-body p-2">
+                            {% for request in expired_requests %}
+                            <div class="card mb-2 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h6 class="card-title mb-1">{{ request.blood_group }}</h6>
+                                        <span class="badge bg-secondary">Expired</span>
+                                    </div>
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-calendar-x me-1"></i>{{ request.required_by|date:"M d, Y" }}<br>
+                                        <i class="bi bi-hospital me-1"></i>{{ request.hospital.name }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted mb-0 p-2">No expired requests</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- Responded Requests -->
+                <div class="collapse mb-3" id="respondedRequests" data-bs-parent="#requestHistory">
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">Responded Requests</h5>
+                        </div>
+                        <div class="card-body p-2">
+                            {% for request in responded_requests %}
+                            <div class="card mb-2 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h6 class="card-title mb-1">{{ request.blood_group }}</h6>
+                                        <span class="badge bg-{{ request.status }}">{{ request.get_status_display }}</span>
+                                    </div>
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-calendar-check me-1"></i>{{ request.donorresponse_set.first.created_at|date:"M d, Y" }}<br>
+                                        <i class="bi bi-hospital me-1"></i>{{ request.hospital.name }}<br>
+                                        <i class="bi bi-clock me-1"></i>Required by: {{ request.required_by|date:"M d, Y" }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted mb-0 p-2">No responded requests</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+        
+                <!-- Helped Requests -->
+                <div class="collapse mb-3" id="helpedRequests" data-bs-parent="#requestHistory">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Helped Requests</h5>
+                        </div>
+                        <div class="card-body p-2">
+                            {% for request in helped_requests %}
+                            <div class="card mb-2 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h6 class="card-title mb-1">{{ request.blood_group }}</h6>
+                                        <span class="badge bg-{{ request.status }}">{{ request.get_status_display }}</span>
+                                    </div>
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-calendar-check me-1"></i>{{ request.donorhelp_set.first.created_at|date:"M d, Y" }}<br>
+                                        <i class="bi bi-hospital me-1"></i>{{ request.hospital.name }}<br>
+                                        <i class="bi bi-clock me-1"></i>Required by: {{ request.required_by|date:"M d, Y" }}
+                                    </small>
+                                    {% if request.donorhelp_set.first.message %}
+                                    <div class="mt-2 small">
+                                        <strong>Message:</strong><br>
+                                        {{ request.donorhelp_set.first.message }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted mb-0 p-2">No helped requests</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+<style>
+.accordion .collapse {
+    transition: all 0.2s ease;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.card-body.p-2 {
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+/* Status-specific badge colors */
+.badge.bg-pending { background-color: #ffc107; }
+.badge.bg-fulfilled { background-color: #198754; }
+.badge.bg-expired { background-color: #6c757d; }
+.badge.bg-cancelled { background-color: #dc3545; }
+.badge.bg-processing { background-color: #1813a1; }
+
+.card {
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-5px);
+}
+.btn-outline-danger:disabled,
+.btn-outline-primary:disabled {
+    opacity: 1;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+    color: #6c757d;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function updateButton(btn, type) {
+        btn.disabled = true;
+        if (type === 'respond') {
+            btn.classList.remove('btn-outline-danger');
+            btn.classList.add('btn-secondary');
+            btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Responded';
+        } else {
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-secondary');
+            btn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Helped';
+        }
+    }
+
+    // Handle respond buttons
+    document.querySelectorAll('.respond-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const requestId = this.dataset.requestId;
+            fetch(`/donor/respond-to-request/${requestId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateButton(this, 'respond');
+                }
+            });
+        });
+    });
+
+    // Handle help buttons
+    document.querySelectorAll('.help-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const requestId = this.dataset.requestId;
+            fetch(`/donor/offer-help/${requestId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateButton(this, 'help');
+                }
+            });
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

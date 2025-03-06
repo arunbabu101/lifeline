@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Donor Details - {{ donor.get_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Donor Profile Header with Messaging Tab Navigation -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <ul class="nav nav-tabs card-header-tabs" id="donorTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active text-dark" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="true">
+                        <i class="fas fa-user me-2"></i>Profile
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link text-dark" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" type="button" role="tab" aria-controls="messages" aria-selected="false">
+                        <i class="fas fa-comments me-2"></i>Messages
+                        {% if unread_count > 0 %}
+                            <span class="badge bg-danger rounded-pill">{{ unread_count }}</span>
+                        {% endif %}
+                    </button>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="tab-content" id="donorTabContent">
+            <!-- Profile Tab -->
+            <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Profile Picture Column -->
+                        <div class="col-md-3 text-center">
+                            {% if donor.profile_pic %}
+                                <img src="{{ donor.profile_pic.url }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 200px; height: 200px; object-fit: cover;">
+                            {% else %}
+                                <img src="{% static 'img/default_profile.png' %}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 200px; height: 200px; object-fit: cover;">
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Donor Information Column -->
+                        <div class="col-md-9">
+                            <h2>{{ donor.get_name }}</h2>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <p><strong>Blood Group:</strong> {{ donor.blood_group }}</p>
+                                    <p><strong>District:</strong> {{ donor.district }}</p>
+                                    <p><strong>Weight:</strong> {{ donor.weight }} kg</p>
+                                    <p><strong>Last Donated:</strong> {{ donor.get_last_donated_display }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Blood Donor Status:</strong> 
+                                        {% if donor.is_blood_donor %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Organ Donor Status:</strong> 
+                                        {% if organ_donor and organ_donor.is_active and organ_donor.agreed_to_donate %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </p>
+                                    <p><strong>Registered Since:</strong> {{ donor.created_at|date:"F d, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages Tab -->
+            <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
+                <div class="card-body">
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chatMessages">
+                            {% if messages_thread %}
+                                {% for message in messages_thread %}
+                                    <div class="message {% if message.sender == request.user %}outgoing{% else %}incoming{% endif %}">
+                                        <div class="message-content">
+                                            {{ message.content }}
+                                        </div>
+                                        <div class="message-meta text-muted small">
+                                            {{ message.timestamp|date:"M d, Y h:i A" }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-comments fa-3x mb-3"></i>
+                                    <p>No messages yet. Start a conversation with {{ donor.get_name }}.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Message Input Form -->
+                        <form method="post" action="{% url 'donor_chat' donor.id %}" class="chat-input-form mt-3">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <select class="form-select" name="context_type" style="max-width: 140px;">
+                                    <option value="none">No context</option>
+                                    <option value="blood_request">Blood Request</option>
+                                    {% if organ_donor %}
+                                    <option value="organ_request">Organ Request</option>
+                                    {% endif %}
+                                </select>
+                                <select class="form-select" name="context_id" style="max-width: 200px;">
+                                    <option value="">Select a request</option>
+                                    <optgroup label="Blood Requests">
+                                        {% for request in active_blood_requests %}
+                                            <option value="blood_{{ request.id }}">
+                                                {{ request.patient_name }} - {{ request.blood_group }}
+                                            </option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    {% if organ_donor and active_organ_requests %}
+                                    <optgroup label="Organ Requests">
+                                        {% for request in active_organ_requests %}
+                                            <option value="organ_{{ request.id }}">
+                                                {{ request.organ_type.name }} - {{ request.patient_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    {% endif %}
+                                </select>
+                                <input type="text" name="message" class="form-control" placeholder="Type your message..." required>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Registered Organs (only show if donor is an organ donor) -->
+    {% if organ_donor %}
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">Registered Organs for Donation</h4>
+        </div>
+        <div class="card-body">
+            {% if organ_donor.organs.all %}
+                <div class="row">
+                    {% for organ in organ_donor.organs.all %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ organ.name }}</h5>
+                                    <p class="card-text"><strong>Category:</strong> {{ organ.get_category_display }}</p>
+                                    {% if organ.description %}
+                                        <p class="card-text">{{ organ.description|truncatewords:15 }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No organs registered for donation.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Donation History -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Blood Donation History</h4>
+        </div>
+        <div class="card-body">
+            {% if blood_donations %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Request</th>
+                                <th>Hospital</th>
+                                <th>Blood Group</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for donation in blood_donations %}
+                                <tr>
+                                    <td>{{ donation.donation_date|date:"F d, Y" }}</td>
+                                    <td>{{ donation.blood_request.patient_name }}</td>
+                                    <td>{{ donation.blood_request.hospital.name }}</td>
+                                    <td>{{ donation.blood_request.blood_group }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No blood donation history available.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Organ Matching History (only show if donor is an organ donor and has matches) -->
+    {% if organ_donor and matched_requests %}
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h4 class="mb-0">Organ Match History</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Organ</th>
+                            <th>Patient</th>
+                            <th>Hospital</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in matched_requests %}
+                            <tr>
+                                <td>{{ request.updated_at|date:"F d, Y" }}</td>
+                                <td>{{ request.organ_type.name }}</td>
+                                <td>{{ request.patient_name }}</td>
+                                <td>{{ request.hospital.name }}</td>
+                                <td>
+                                    {% if request.status == 'matched' %}
+                                        <span class="badge bg-warning">Matched</span>
+                                    {% elif request.status == 'fulfilled' %}
+                                        <span class="badge bg-success">Fulfilled</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ request.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add some CSS for the chat interface -->
+<style>
+    .chat-container {
+        height: 400px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 350px;
+    }
+    
+    .message {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 15px;
+        position: relative;
+        margin-bottom: 5px;
+    }
+    
+    .incoming {
+        align-self: flex-start;
+        background-color: #f1f0f0;
+        border-bottom-left-radius: 5px;
+    }
+    
+    .outgoing {
+        align-self: flex-end;
+        background-color: #e3f2fd;
+        border-bottom-right-radius: 5px;
+    }
+    
+    .message-meta {
+        font-size: 0.75rem;
+        margin-top: 5px;
+    }
+</style>
+
+<!-- JavaScript to auto-scroll to the bottom of chat and to disable context select based on selection -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-scroll to bottom of chat
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Show/hide context ID dropdown based on context type
+        const contextTypeSelect = document.querySelector('select[name="context_type"]');
+        const contextIdSelect = document.querySelector('select[name="context_id"]');
+        
+        if (contextTypeSelect && contextIdSelect) {
+            contextTypeSelect.addEventListener('change', function() {
+                if (this.value === 'none') {
+                    contextIdSelect.disabled = true;
+                    contextIdSelect.value = '';
+                } else {
+                    contextIdSelect.disabled = false;
+                    // Filter options based on type
+                    Array.from(contextIdSelect.querySelectorAll('optgroup')).forEach(function(group) {
+                        if (this.value === 'blood_request' && group.label === 'Blood Requests') {
+                            group.style.display = '';
+                        } else if (this.value === 'organ_request' && group.label === 'Organ Requests') {
+                            group.style.display = '';
+                        } else {
+                            group.style.display = 'none';
+                        }
+                    }, this);
+                }
+            });
+            
+            // Initialize on page load
+            contextTypeSelect.dispatchEvent(new Event('change'));
+        }
+        
+        // Set the active tab based on URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab === 'messages') {
+            document.getElementById('messages-tab').click();
+        }
+    });
+</script>
+{% endblock %}

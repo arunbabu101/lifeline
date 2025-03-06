@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Welcome Section -->
+<section class="hospital-dashboard py-4">
+    <div class="container">
+        <!-- Welcome Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-primary text-white shadow">
+                    <div class="card-body p-4">
+                        <h2 class="mb-0">Welcome, {{ request.user.hospital_profile.name }}</h2>
+                        <p class="mb-0">{{ request.user.hospital_profile.district }} District</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Row -->
+        <div class="row mb-4">
+            <!-- Blood Requests Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Blood Requests</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_blood_requests }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-droplet-fill fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Donors Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Available Donors</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ available_donors }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-people-fill fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Requests Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Pending Requests</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_requests }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-clock-fill fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Rate Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Success Rate
+                                </div>
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col-auto">
+                                        <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ success_rate }}%</div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="progress progress-sm mr-2">
+                                            <div class="progress-bar bg-info" role="progressbar" data-success-rate="{{ success_rate }}"
+                                                aria-valuenow="{{ success_rate }}" aria-valuemin="0" aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="bi bi-check-circle-fill fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Row -->
+        <div class="row">
+            <!-- Recent Blood Requests -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Recent Blood Requests</h6>
+                        <a href="#" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Blood Group</th>
+                                        <th>Units</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in recent_blood_requests %}
+                                    <tr>
+                                        <td>{{ request.created_at|date:"Y-m-d" }}</td>
+                                        <td>{{ request.blood_group }}</td>
+                                        <td>{{ request.units_required }}</td>
+                                        <td>
+                                            <span class="badge 
+                                                {% if request.status == 'fulfilled' %}bg-success
+                                                {% elif request.status == 'pending' %}bg-warning
+                                                {% elif request.status == 'cancelled' %}bg-danger
+                                                {% else %}bg-primary{% endif %}">
+                                                {{ request.status|title }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Messages -->
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Recent Messages</h6>
+                        <a href="{% url 'hospital_all_messages' %}" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for message in recent_messages %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ message.sender.username }}</strong>
+                                    <p class="mb-0">{{ message.content|truncatechars:50 }}</p>
+                                </div>
+                                <span class="text-muted small">{{ message.timestamp|timesince }} ago</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Row -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'create_blood_request' %}" class="btn btn-primary btn-block w-100">
+                                    <i class="bi bi-plus-circle me-2"></i>New Blood Request
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'blood_donor_list' %}" class="btn btn-success btn-block w-100">
+                                    <i class="bi bi-search me-2"></i>Search Donors
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'blood_request_list' %}" class="btn btn-info btn-block w-100">
+                                    <i class="bi bi-graph-up me-2"></i>View Requests
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'hospital_profile' %}" class="btn btn-secondary btn-block w-100">
+                                    <i class="bi bi-gear me-2"></i>Settings
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Add custom CSS for the dashboard -->
+{% block extra_css %}
+<style>
+    .border-left-primary {
+        border-left: 4px solid #4e73df !important;
+    }
+    .border-left-success {
+        border-left: 4px solid #1cc88a !important;
+    }
+    .border-left-warning {
+        border-left: 4px solid #f6c23e !important;
+    }
+    .border-left-info {
+        border-left: 4px solid #36b9cc !important;
+    }
+    .progress {
+        height: 0.5rem;
+    }
+    .card-header {
+        background-color: #f8f9fc;
+    }
+</style>
+{% endblock %}
+<script>
+    // Apply the dynamic width using JavaScript
+    document.addEventListener("DOMContentLoaded", function() {
+        const progressBar = document.querySelector('.progress-bar[data-success-rate]');
+        if (progressBar) {
+            const successRate = progressBar.getAttribute('data-success-rate');
+            progressBar.style.width = `${successRate}%`;
+        }
+    });
+</script>
+{% endblock %}

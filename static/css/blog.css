@@ -1,0 +1,82 @@
+/* Add this to your static/css/main.css or create a new CSS file */
+
+/* Blog Cards */
+.blog-card {
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .blog-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .blog-image-wrapper {
+    height: 200px;
+    overflow: hidden;
+  }
+  
+  .blog-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .category-badge .badge {
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+  
+  .blog-meta {
+    font-size: 0.85rem;
+  }
+  
+  /* Blog Detail Page */
+  .blog-post-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+  }
+  
+  .blog-post-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+  }
+  
+  .blog-post-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+  }
+  
+  .blog-post-tags .badge {
+    margin-right: 0.5rem;
+  }
+  
+  /* Comments Section */
+  .comment {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+  }
+  
+  .comment-meta {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Sidebar */
+  .sidebar .card-header {
+    background-color: #f8f9fa;
+    font-weight: 600;
+  }
+  
+  .sidebar ul li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .sidebar ul li:last-child {
+    border-bottom: none;
+  }
+  
+  /* Search and Filter */
+  .search-filter {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+  }

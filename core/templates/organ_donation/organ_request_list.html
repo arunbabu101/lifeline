@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4 text-primary">Organ Requests</h1>
+    
+    <!-- Navigation Pills -->
+    <ul class="nav nav-pills mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" href="#active">Active Requests</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#history">History</a>
+        </li>
+        <li class="nav-item ms-auto">
+            <a class="btn btn-danger" href="{% url 'create_organ_request' %}">
+                <i class="fas fa-plus"></i> New Organ Request
+            </a>
+        </li>
+    </ul>
+
+    <!-- Active Requests Section -->
+    <div id="active" class="mb-5">
+        <h2 class="h4 mb-4">Active Requests</h2>
+        {% if requests %}
+            {% for request in requests %}
+            <div class="card request-card mb-3">
+                <div class="card-body d-flex align-items-center">
+                    <div class="organ-type me-4">
+                        <i class="fas fa-organ text-danger fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h5 class="mb-1">{{ request.organ_type.name }}</h5>
+                                <span class="text-muted">Patient: {{ request.patient_name }}</span>
+                            </div>
+                            <span class="status-badge badge rounded-pill 
+                                {% if request.status == 'pending' %}status-pending
+                                {% elif request.status == 'matched' %}status-matched
+                                {% elif request.status == 'fulfilled' %}status-fulfilled
+                                {% else %}status-cancelled{% endif %}">
+                                {{ request.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <div>
+                                <span class="badge bg-info me-2">Blood: {{ request.patient_blood_group }}</span>
+                                <span class="badge bg-{% if request.urgency_level == 3 %}danger{% elif request.urgency_level == 2 %}warning{% else %}success{% endif %}">
+                                    {% if request.urgency_level == 3 %}Critical
+                                    {% elif request.urgency_level == 2 %}Urgent
+                                    {% else %}Normal{% endif %}
+                                </span>
+                            </div>
+                            <li class="nav-item ms-auto">
+                                <a class="btn btn-danger" href="{% url 'organ_request_detail' request.id %}">
+                                    <i class="fas fa-plus"></i> View Details
+                                </a>
+                            </li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No active organ requests found.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- History Section -->
+    <div id="history" class="history-section p-4 rounded" style="display: none;">
+        <h2 class="h4 mb-4">Request History</h2>
+        {% if history_requests %}
+            {% for request in history_requests %}
+            <div class="card request-card mb-3">
+                <div class="card-body d-flex align-items-center">
+                    <div class="organ-type me-4">
+                        <i class="fas fa-organ text-secondary fa-2x"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h5 class="mb-1">{{ request.organ_type.name }}</h5>
+                                <span class="text-muted">Patient: {{ request.patient_name }}</span>
+                            </div>
+                            <span class="status-badge badge rounded-pill 
+                                {% if request.status == 'fulfilled' %}status-fulfilled
+                                {% else %}status-cancelled{% endif %}">
+                                {{ request.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted">Created: {{ request.created_at|date:"M d, Y" }}</small>
+                                {% if request.matched_donor %}
+                                <small class="text-success ms-3">
+                                    <i class="fas fa-check-circle"></i> Matched Donor
+                                </small>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'organ_request_detail' request.id %}" 
+                               class="btn btn-outline-primary action-button">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No historical requests found.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .nav-pills .nav-link.active {
+        background-color: #dc3545;
+    }
+    .nav-pills .nav-link {
+        color: #495057;
+    }
+    .organ-type {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .request-card {
+        transition: transform 0.2s;
+        border-left: 4px solid #dc3545;
+    }
+    .request-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        font-size: 0.9rem;
+        padding: 0.5em 1em;
+    }
+    .status-pending { background-color: #ffc107; }
+    .status-matched { background-color: #17a2b8; }
+    .status-fulfilled { background-color: #28a745; }
+    .status-cancelled { background-color: #6c757d; }
+    .history-section {
+        background-color: #f8f9fa;
+    }
+    .action-button {
+        min-width: 120px;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                var targetId = this.getAttribute('href').substring(1);
+                document.querySelectorAll('#active, #history').forEach(section => {
+                    section.style.display = section.id === targetId ? 'block' : 'none';
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

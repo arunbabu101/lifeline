@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row">
+    {% for blog in blogs %}
+    <div class="col-md-3">
+        <a href="{% url 'blog_detail' blog.slug %}" style="text-decoration: none; color: inherit;">
+            <div class="card">
+                <img src="{{ blog.featured_image.url }}" class="card-img-top" alt="{{ blog.title }}">
+                <div class="card-body">
+                    <h5>{{ blog.title }}</h5>
+                    <p>{{ blog.content|truncatewords:10 }}</p>
+                    <div>
+                        <a href="{% url 'like_blog' blog.id %}" class="btn btn-success">Like ({{ blog.total_likes }})</a>
+                        <a href="{% url 'dislike_blog' blog.id %}" class="btn btn-danger">Dislike ({{ blog.total_dislikes }})</a>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

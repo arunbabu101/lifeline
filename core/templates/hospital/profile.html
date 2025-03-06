@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <!-- Profile Sidebar -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <div class="profile-img-wrapper mb-4">
+            {% if hospital.profile_picture %}
+              <img src="{{ hospital.profile_picture.url }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+            {% else %}
+              <img src="{% static 'img/default_profile.png' %}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+            {% endif %}
+          </div>
+          <h4 class="mb-0">{{ hospital.name }}</h4>
+          <p class="text-muted">{{ hospital.email }}</p>
+          <div class="mt-4">
+            <a href="{% url 'edit_hospital_profile' %}" class="btn btn-primary">
+              <i class="bi bi-pencil-square"></i> Edit Profile
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">Hospital Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Name</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ hospital.name }}
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">District</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ hospital.get_district_display }}
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Phone</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ hospital.phone }}
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Manager Name</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ hospital.manager_name }}
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Manager Phone</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ hospital.manager_phone }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download Buttons -->
+      <div class="mt-4">
+        <a href="{% url 'download_blood_requests_pdf' %}" class="btn btn-danger">
+          <i class="bi bi-file-earmark-pdf"></i> Download Blood Requests (PDF)
+        </a>
+        <a href="{% url 'download_organ_requests_pdf' %}" class="btn btn-success">
+          <i class="bi bi-file-earmark-pdf"></i> Download Organ Requests (PDF)
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

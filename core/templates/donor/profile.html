@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row">
+    <!-- Profile Sidebar -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <div class="profile-img-wrapper mb-4">
+            {% if user.donor_profile.profile_pic %}
+            <img src="{{ user.donor_profile.profile_pic.url }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+          {% else %}
+            <img src="{% static 'img/default_profile.png' %}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+          {% endif %}
+          </div>
+          <h4 class="mb-0">{{ user.get_full_name }}</h4>
+          <p class="text-muted">{{ user.email }}</p>
+          <div class="donor-stats mt-4">
+            <div class="row text-center">
+              <div class="col">
+                <h5 class="mb-0">{{ user.donor_profile.blood_group }}</h5>
+                <small class="text-muted">Blood Group</small>
+              </div>
+              <div class="col">
+                <h5 class="mb-0">{{ user.donor_profile.get_last_donated_display }}</h5>
+                <small class="text-muted">Last Donated</small>
+              </div>
+            </div>
+          </div>
+          <div class="mt-4">
+            <a href="{% url 'edit_donor_profile' %}" class="btn btn-primary">
+              <i class="bi bi-pencil-square"></i> Edit Profile
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">Profile Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Full Name</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ user.get_full_name }}
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Email</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ user.email }}
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Phone</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ user.donor_profile.phone }}
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">District</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ user.donor_profile.get_district_display }}
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-sm-3">
+              <h6 class="mb-0">Weight</h6>
+            </div>
+            <div class="col-sm-9 text-muted">
+              {{ user.donor_profile.weight }} kg
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Donation History -->
+      <div class="card shadow-sm mt-4">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">Donation History</h5>
+        </div>
+        <div class="card-body">
+          <!-- Blood Donation History -->
+          <h4 class="mb-3">Blood Donation History</h4>
+          {% if blood_donation_history %}
+              <div class="row g-4">
+                  {% for donation in blood_donation_history %}
+                      <div class="col-md-6 col-lg-4">
+                          <div class="card h-100">
+                              <div class="card-body">
+                                  <h5 class="card-title">Blood Donation</h5>
+                                  <p class="mb-1"><strong>Blood Group:</strong> {{ donation.blood_request.blood_group }}</p>
+                                  <p class="mb-1"><strong>Donation Date:</strong> {{ donation.donation_date|date:"M d, Y" }}</p>
+                                  <p class="mb-1"><strong>Hospital:</strong> {{ donation.blood_request.hospital.name }}</p>
+                              </div>
+                          </div>
+                      </div>
+                  {% endfor %}
+              </div>
+          {% else %}
+              <div class="alert alert-info">No blood donation history available.</div>
+          {% endif %}
+
+          <!-- Organ Donation History -->
+          <h4 class="mb-3 mt-5">Organ Donation History</h4>
+          {% if organ_donation_history %}
+              <div class="row g-4">
+                  {% for donation in organ_donation_history %}
+                      <div class="col-md-6 col-lg-4">
+                          <div class="card h-100">
+                              <div class="card-body">
+                                  <h5 class="card-title">{{ donation.organ_type.name }} Donation</h5>
+                                  <p class="mb-1"><strong>Hospital:</strong> {{ donation.hospital.name }}</p>
+                                  <p class="mb-1"><strong>Patient Name:</strong> {{ donation.patient_name }}</p>
+                                  <p class="mb-1"><strong>Blood Group:</strong> {{ donation.patient_blood_group }}</p>
+                                  <p class="mb-1"><strong>Donation Date:</strong> {{ donation.updated_at|date:"M d, Y" }}</p>
+                                  <!-- Download Certificate Button -->
+                                  <a href="{% url 'download_certificate' donation.id %}" class="btn btn-success mt-3">
+                                      <i class="bi bi-download"></i> Download Certificate
+                                  </a>
+                              </div>
+                          </div>
+                      </div>
+                  {% endfor %}
+              </div>
+          {% else %}
+              <div class="alert alert-info">No organ donation history available.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

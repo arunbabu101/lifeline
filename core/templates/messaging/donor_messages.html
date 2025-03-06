@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">
+                <i class="fas fa-inbox me-2"></i>My Messages
+            </h2>
+
+            {% if messages %}
+                <div class="list-group">
+                    {% for message in messages %}
+                    <a href="{% url 'message_thread' message.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">
+                                <i class="fas fa-hospital me-2"></i>
+                                From: {{ message.sender.hospital_profile.hospital_name }}
+                            </h5>
+                            <small class="text-muted">
+                                {{ message.timestamp|timesince }} ago
+                            </small>
+                        </div>
+                        <p class="mb-1">{{ message.content|truncatechars:100 }}</p>
+                        <small class="text-muted">
+                            {% if message.status == 'unread' %}
+                                <span class="badge bg-primary">New</span>
+                            {% endif %}
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-envelope-open me-2"></i>
+                    No messages at the moment.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

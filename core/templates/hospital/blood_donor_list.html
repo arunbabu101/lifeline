@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Blood Donors Directory</h2>
+
+    <!-- Search and Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="blood_group" class="form-label">Blood Group</label>
+                    <select name="blood_group" id="blood_group" class="form-select">
+                        <option value="">All Blood Groups</option>
+                        {% for bg_value, bg_label in blood_groups %}
+                        <option value="{{ bg_value }}" {% if request.GET.blood_group == bg_value %}selected{% endif %}>
+                            {{ bg_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="district" class="form-label">District</label>
+                    <select name="district" id="district" class="form-select">
+                        <option value="">All Districts</option>
+                        {% for dist_value, dist_label in districts %}
+                        <option value="{{ dist_value }}" {% if request.GET.district == dist_value %}selected{% endif %}>
+                            {{ dist_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Donors List -->
+    <div class="row">
+        {% for donor in donors %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 d-flex flex-row align-items-center">
+                <!-- Donor Profile Picture -->
+                <div class="me-3">
+                    {% if donor.profile_pic %}
+                        <img src="{{ donor.profile_pic.url }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'img/default_profile.png' %}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% endif %}
+                </div>
+                <!-- Donor Information -->
+                <div class="card-body">
+                    <h5 class="card-title">{{ donor.get_name }}</h5>
+                    <p class="card-text">
+                        <strong>Blood Group:</strong> {{ donor.blood_group }}<br>
+                        <strong>District:</strong> {{ donor.district }}<br>
+                        <strong>Last Donated:</strong> {{ donor.get_last_donated_date|date:"F d, Y" }}<br>
+                        <strong>Status:</strong> <span class="text-success">Eligible to Donate</span>
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'contact_donor' donor.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-comment-medical me-2"></i>Contact Donor
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No eligible donors found matching your criteria.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

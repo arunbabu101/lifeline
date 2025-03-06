@@ -1,0 +1,372 @@
+{# organ_request_detail.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    .detail-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        padding: 0.5em 1em;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+    .donor-card {
+        transition: transform 0.2s;
+    }
+    .donor-card:hover {
+        transform: translateY(-2px);
+    }
+    .stats-card {
+        background: linear-gradient(45deg, #4b6cb7, #182848);
+        color: white;
+        border-radius: 8px;
+    }
+    .urgency-critical {
+        background-color: #dc3545;
+        color: white;
+    }
+    .urgency-urgent {
+        background-color: #ffc107;
+    }
+    .urgency-normal {
+        background-color: #28a745;
+        color: white;
+    }
+    .medical-notes {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Stats Section -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ stats.potential_matches_count }}</h3>
+                        <p class="mb-0">Potential Matches</p>
+                    </div>
+                    <i class="fas fa-user-check fa-2x"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card p-3">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ stats.days_active }}</h3>
+                        <p class="mb-0">Days Active</p>
+                    </div>
+                    <i class="fas fa-calendar-alt fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Details Card -->
+    <div class="card detail-card mb-4">
+        <div class="card-header bg-transparent">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Organ Request Details</h3>
+                <div>
+                    {% if organ_request.status == 'matched' or organ_request.status == 'pending' %}
+                    <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editRequestModal">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelRequestModal">
+                        <i class="fas fa-times"></i> Cancel Request
+                    </button>
+                    {% endif %}
+
+                    {% if organ_request.status == 'matched' %}
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
+                        <i class="fas fa-check"></i> Update Option
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="text-muted">Organ Type</label>
+                        <h5>{{ organ_request.organ_type.name }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Patient Name</label>
+                        <h5>{{ organ_request.patient_name }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Patient Age</label>
+                        <h5>{{ organ_request.patient_age }} years</h5>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="text-muted">Status</label>
+                        <h5><span class="status-badge status-{{ organ_request.status|lower }}">
+                            {{ organ_request.get_status_display }}
+                        </span></h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Blood Group</label>
+                        <h5>{{ organ_request.patient_blood_group }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Urgency Level</label>
+                        <h5><span class="badge urgency-{{ organ_request.get_urgency_level_display|lower }}">
+                            {{ organ_request.get_urgency_level_display }}
+                        </span></h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="medical-notes mt-4">
+                <h5 class="mb-3">Medical Notes</h5>
+                <p class="mb-0">{{ organ_request.medical_notes }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matching Donors Section -->
+    <div class="card detail-card">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Potential Donors ({{ matching_donors.count }})</h4>
+            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#matchingDonorsCollapse">
+                <i class="fas fa-chevron-down"></i> Show/Hide
+            </button>
+        </div>
+        <div class="collapse" id="matchingDonorsCollapse">
+            <div class="card-body">
+                <div class="row">
+                    {% for donor in matching_donors %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card donor-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="donor-avatar me-3">
+                                        <i class="fas fa-user-circle fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0">{{ donor.donor.get_name }}</h5>
+                                        <span class="badge bg-primary">{{ donor.donor.blood_group }}</span>
+                                    </div>
+                                </div>
+                                <p class="mb-2">
+                                    <i class="fas fa-user me-2"></i>Age: {{ donor.donor.age }} years
+                                </p>
+                                <p class="mb-2">
+                                    <i class="fas fa-map-marker-alt me-2"></i>{{ donor.donor.district }}
+                                </p>
+                                <div class="mt-3">
+                                    {% if not organ_request.matched_donor %}
+                                    <button class="btn btn-primary btn-sm w-100" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#contactModal"
+                                            data-donor-id="{{ donor.id }}">
+                                        <i class="fas fa-comment-medical me-2"></i>Contact Donor
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No matching donors found at this time.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="editRequestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Organ Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'edit_organ_request' organ_request.id %}" method="post" id="editRequestForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div id="formContent">
+                        <!-- Form will be loaded here via JavaScript -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Request Modal -->
+<!-- Cancel Request Modal -->
+<div class="modal fade" id="cancelRequestModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Cancel Organ Request
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-times-circle text-danger fa-4x mb-3"></i>
+                    <h5>Are you sure you want to cancel this organ request?</h5>
+                    <p class="text-muted">This action cannot be undone.</p>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Request Details:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li>Organ Type: {{ organ_request.organ_type.name }}</li>
+                        <li>Patient: {{ organ_request.patient_name }}</li>
+                        <li>Urgency Level: {{ organ_request.get_urgency_level_display }}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>No, Keep It
+                </button>
+                <form action="{% url 'cancel_organ_request' organ_request.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-check me-2"></i>Yes, Cancel Request
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Update Status Modal -->
+<div class="modal fade" id="updateStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Organ Request Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'update_organ_request_status' organ_request.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Donor</label>
+                        <select name="donor_id" class="form-select" required>
+                            {% for donor in matching_donors %}
+                            <option value="{{ donor.id }}">{{ donor.donor.get_name }} ({{ donor.donor.blood_group }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Donation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Edit Modal Form Population
+    const editModal = document.getElementById('editRequestModal');
+    const formContent = document.getElementById('formContent');
+    
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', function() {
+            const requestData = {
+                organ_type: "{{ organ_request.organ_type.id|default:'' }}",
+                patient_name: "{{ organ_request.patient_name|escapejs|default:'' }}",
+                patient_age: "{{ organ_request.patient_age|default:0 }}",
+                patient_blood_group: "{{ organ_request.patient_blood_group|default:'' }}",
+                urgency_level: "{{ organ_request.urgency_level|default:1 }}",
+                medical_notes: "{{ organ_request.medical_notes|escapejs|default:'' }}"
+            };
+
+            // Generate form HTML
+            formContent.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Patient Name</label>
+                    <input type="text" name="patient_name" class="form-control" 
+                           value="${requestData.patient_name}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Patient Age</label>
+                    <input type="number" name="patient_age" class="form-control" 
+                           value="${requestData.patient_age}" min="0" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Blood Group</label>
+                    <select name="patient_blood_group" class="form-select" required>
+                        ${generateBloodGroupOptions(requestData.patient_blood_group)}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Urgency Level</label>
+                    <select name="urgency_level" class="form-select" required>
+                        <option value="1" ${requestData.urgency_level == 1 ? 'selected' : ''}>Normal</option>
+                        <option value="2" ${requestData.urgency_level == 2 ? 'selected' : ''}>Urgent</option>
+                        <option value="3" ${requestData.urgency_level == 3 ? 'selected' : ''}>Critical</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Medical Notes</label>
+                    <textarea name="medical_notes" class="form-control" 
+                              rows="4" required>${requestData.medical_notes}</textarea>
+                </div>
+            `;
+        });
+    }
+
+    // Helper function to generate blood group options
+    function generateBloodGroupOptions(selected) {
+        const groups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+        return groups.map(group => 
+            `<option value="${group}" ${group === selected ? 'selected' : ''}>${group}</option>`
+        ).join('');
+    }
+
+
+    // Match Donor Modal Handler
+    const matchModal = document.getElementById('matchDonorModal');
+    if (matchModal) {
+        matchModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const donorId = button.getAttribute('data-donor-id');
+            document.getElementById('selectedDonorId').value = donorId;
+        });
+    }
+
+    // Helper function to generate blood group options
+    function generateBloodGroupOptions(selected) {
+        const groups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+        return groups.map(group => 
+            `<option value="${group}" ${group === selected ? 'selected' : ''}>${group}</option>`
+        ).join('');
+    }
+});
+</script>
+{% endblock %}
+
+{% endblock %}

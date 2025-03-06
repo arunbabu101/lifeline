@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Organ Donors Directory</h2>
+
+    <!-- Search and Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="blood_group" class="form-label">Blood Group</label>
+                    <select name="blood_group" id="blood_group" class="form-select">
+                        <option value="">All Blood Groups</option>
+                        {% for bg_value, bg_label in blood_groups %}
+                        <option value="{{ bg_value }}" {% if request.GET.blood_group == bg_value %}selected{% endif %}>
+                            {{ bg_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="district" class="form-label">District</label>
+                    <select name="district" id="district" class="form-select">
+                        <option value="">All Districts</option>
+                        {% for dist_value, dist_label in districts %}
+                        <option value="{{ dist_value }}" {% if request.GET.district == dist_value %}selected{% endif %}>
+                            {{ dist_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="organ_type" class="form-label">Organ Type</label>
+                    <select name="organ_type" id="organ_type" class="form-select">
+                        <option value="">All Organs</option>
+                        {% for organ in organ_types %}
+                        <option value="{{ organ.id }}" {% if request.GET.organ_type == organ.id|stringformat:"s" %}selected{% endif %}>
+                            {{ organ.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="organ_type" class="form-label">Tissue Type</label>
+                    <select name="organ_type" id="organ_type" class="form-select">
+                        <option value="">All Tissues</option>
+                        {% for tissue in tissue_types %}
+                        <option value="{{ organ.id }}" {% if request.GET.organ_type == organ.id|stringformat:"s" %}selected{% endif %}>
+                            {{ tissue.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Donors List -->
+    <div class="row">
+        {% for organ_donor in organ_donors %}
+        <div class="col-md-5 mb-5">
+            <div class="card h-100 d-flex flex-row align-items-center">
+                <!-- Donor Profile Picture -->
+                <div class="me-3">
+                    {% if organ_donor.donor.profile_pic %}
+                        <img src="{{ organ_donor.donor.profile_pic.url }}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 750px; height: 250px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'img/default_profile.png' %}" alt="Profile" class="rounded-circle img-thumbnail" style="width: 450px; height: 50px; object-fit: cover;">
+                    {% endif %}
+                </div>
+                <!-- Donor Information -->
+                <div class="card-body">
+                    <h5 class="card-title">{{ organ_donor.donor.get_name }}</h5>
+                    <p class="card-text">
+                        <strong>Blood Group:</strong> {{ organ_donor.donor.blood_group }}<br>
+                        <strong>District:</strong> {{ organ_donor.donor.district }}<br>
+                        <strong>Registered Organs:</strong>
+                        {% for organ in organ_donor.organs.all %}
+                            {{ organ.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'donor_detail' organ_donor.donor.id %}" class="btn btn-primary btn-sm mb-2 w-100">
+                        <i class="fas fa-user-md me-1"></i>View Details
+                    </a>
+                    <a href="{% url 'contact_donor' organ_donor.donor.id %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-comment-medical me-1"></i>Quick Contact
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">No organ donors found matching your criteria.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

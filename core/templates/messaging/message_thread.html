@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>
+                        Message Thread with 
+                        {% if base_message.sender == request.user %}
+                            {{ base_message.recipient.donor_profile.get_name }}
+                        {% else %}
+                            {{ base_message.sender.donor_profile.get_name }}
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="message-thread">
+                        {% for message in message_thread %}
+                            <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %} mb-3">
+                                <div class="message-content p-2 rounded 
+                                    {% if message.sender == request.user %}
+                                        bg-primary text-white
+                                    {% else %}
+                                        bg-light
+                                    {% endif %}">
+                                    <p class="mb-1">{{ message.content }}</p>
+                                    <small class="
+                                        {% if message.sender == request.user %}
+                                            text-white-50
+                                        {% else %}
+                                            text-muted
+                                        {% endif %}">
+                                        {{ message.timestamp|date:"M d, Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <form method="post" class="mt-3">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <textarea name="content" class="form-control" rows="4" placeholder="Type your reply..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Send Reply
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.message-thread {
+    max-height: 500px;
+    overflow-y: auto;
+}
+.message {
+    display: flex;
+}
+.message.sent {
+    justify-content: flex-end;
+}
+.message.received {
+    justify-content: flex-start;
+}
+.message-content {
+    max-width: 70%;
+}
+</style>
+{% endblock %}

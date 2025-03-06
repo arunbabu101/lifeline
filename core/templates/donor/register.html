@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-body p-5">
+            <!-- Logo and Heading -->
+            <div class="text-center mb-4">
+                <img src="{% static 'img/heart-pulse.svg' %}" alt="Heart Logo" class="mb-3" style="width: 64px;">
+                <h1 class="text-primary">Join Our Blood Donor Community</h1>
+                <p class="text-muted">Create an account to start saving lives</p>
+            </div>
+
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Name Fields Row -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="first_name" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="first_name" name="first_name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="last_name" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="last_name" name="last_name" required>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                    {% if form.email.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.email.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- District and Blood Group Row -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="district" class="form-label">District</label>
+                        <select class="form-select" id="district" name="district" required>
+                            <option value="">Select District</option>
+                            {% for key, value in form.fields.district.choices %}
+                            <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="blood_group" class="form-label">Blood Group</label>
+                        <select class="form-select" id="blood_group" name="blood_group" required>
+                            <option value="">Select Blood Group</option>
+                            {% for key, value in form.fields.blood_group.choices %}
+                            <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Phone Number -->
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" class="form-control" id="phone" name="phone" required>
+                </div>
+
+                <!-- Weight and Last Donated Row -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="weight" class="form-label">Weight (kg)</label>
+                        <input type="number" class="form-control" id="weight" name="weight" min="45" max="150" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="last_donated" class="form-label">Last Donated</label>
+                        <select class="form-select" id="last_donated" name="last_donated" required>
+                            <option value="">Select Last Donated Time</option>
+                            {% for key, value in form.fields.last_donated.choices %}
+                            <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Password Fields Row -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="password1" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password1" name="password1" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="password2" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="password2" name="password2" required>
+                    </div>
+                </div>
+
+                <!-- Error Messages -->
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    {% for field, errors in form.errors.items %}
+                    <p>{{ field }}: {{ errors|join:', ' }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary w-100">Create Account</button>
+
+                <!-- Login Link -->
+                <div class="text-center mt-3">
+                    <p class="text-muted">Already have an account? <a href="{% url 'donor_login' %}" class="text-primary">Login here</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

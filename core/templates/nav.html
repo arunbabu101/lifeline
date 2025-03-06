@@ -1,0 +1,563 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifeline - Organ and Blood Donation</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        /* Chatbot styling */
+        #chatbox {
+            height: 350px;
+            overflow-y: auto;
+            padding: 15px;
+            margin-bottom: 0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            margin-left: auto;
+            background-color: #e3f2fd;
+            color: #0d6efd;
+            border-top-right-radius: 0;
+        }
+
+        .bot-message {
+            margin-right: auto;
+            background-color: #f8f9fa;
+            color: #212529;
+            border-top-left-radius: 0;
+        }
+
+        /* Mobile responsiveness for the modal */
+        @media (max-width: 576px) {
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+
+            #chatbox {
+                height: 300px;
+            }
+        }
+
+        #kidneyAnalyzerModal .modal-content {
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    #kidneyAnalyzerModal .modal-header {
+        background-color: #4682B4;
+        color: white;
+        border-radius: 15px 15px 0 0;
+    }
+
+    #kidneyAnalyzerModal .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    #kidneyAnalyzerModal .form-control:focus, 
+    #kidneyAnalyzerModal .form-select:focus {
+        border-color: #4682B4;
+        box-shadow: 0 0 0 0.25rem rgba(70, 130, 180, 0.25);
+    }
+
+    #kidneyAnalyzerModal .btn-primary {
+        background-color: #4682B4;
+        border-color: #4682B4;
+        transition: all 0.3s ease;
+    }
+
+    #kidneyAnalyzerModal .btn-primary:hover {
+        background-color: #3a6d95;
+        border-color: #3a6d95;
+    }
+
+    #prediction-result {
+        padding: 1rem;
+        border-radius: 10px;
+        background-color: #f8f9fa;
+        margin-bottom: 1rem;
+    }
+    </style>
+</head>
+<body>
+    <header id="header" class="header sticky-top">
+        <div class="topbar d-flex align-items-center">
+            <div class="container d-flex justify-content-center justify-content-md-between">
+                <div class="contact-info d-flex align-items-center">
+                    <i class="bi bi-envelope d-flex align-items-center"><a href="mailto:contact@example.com">lifelineservices.in</a></i>
+                    <i class="bi bi-phone d-flex align-items-center ms-4"><span>+91 6383635540</span></i>
+                </div>
+                <div class="social-links d-none d-md-flex align-items-center">
+                    <a href="https://www.twitter.com" class="twitter"><i class="bi bi-twitter-x"></i></a>
+                    <a href="https://www.facebook.com" class="facebook"><i class="bi bi-facebook"></i></a>
+                    <a href="https://www.instagram.com/_____.arun_/" class="instagram"><i class="bi bi-instagram"></i></a>
+                    <a href="https://www.linkedin.com/in/arun-babu01/" class="linkedin"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <!-- End Top Bar -->
+        <div class="branding d-flex align-items-center">
+            <div class="container position-relative d-flex align-items-center justify-content-between">
+                <a href="" class="logo d-flex align-items-center me-auto">
+                    <h1 class="sitename">Lifeline</h1>
+                </a>
+
+                <nav id="navmenu" class="navmenu">
+                    <ul>{% if user.is_authenticated %}
+                          {% if user.is_authenticated and user.hospital_profile %}
+                          <li><a href="{% url 'hospital_home' %}" class="active">Home</a></li>
+                          {% endif %}
+                          {% if user.is_authenticated and user.donor_profile %}
+                          <li><a href="{% url 'donor_home' %}" class="active">Home</a></li>
+                          {% endif %}
+                        {% else %}
+                        <li><a href="{% url 'home' %}" class="active">Home</a></li>
+                        {% endif %}
+
+                        
+
+                        <li><a href="#about">About</a></li>
+                        <li>
+                            {% if user.is_authenticated and user.hospital_profile %}
+                                <a href="{% url 'hospital_profile' %}" class="nav-link">
+                                    <i class="bi bi-person-circle"></i> Profile
+                                </a>
+                            {% endif %}
+                            {% if user.is_authenticated and user.donor_profile %}
+                                <a href="{% url 'donor_profile' %}" class="nav-link">
+                                    <i class="bi bi-person-circle"></i> Profile
+                                </a>
+                            {% endif %}
+                        </li>
+
+                        {% if user.is_authenticated %}
+                            <li>
+                                <a href="#" data-bs-toggle="modal" data-bs-target="#logoutModal" class="nav-link text-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="registerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Register
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="registerDropdown">
+                                    <li><a class="dropdown-item" href="{% url 'donor_register' %}">Donor</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'hospital_register' %}">Hospital</a></li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="registerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Login
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="registerDropdown">
+                                    <li><a class="dropdown-item" href="{% url 'donor_login' %}">Donor</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'hospital_login' %}">Hospital</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+
+                        {% if user.is_authenticated and user.hospital_profile %}
+                            <li class="dropdown">
+                                <a href="#"><span>Blood Management</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                                <ul>
+                                    <li><a href="{% url 'blood_donor_list' %}">Blood Donors</a></li>
+                                    <li><a href="{% url 'blood_request_list' %}">Blood Requests</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#"><span>Organ Donation</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                                <ul>
+                                    <li><a href="{% url 'organ_request_list' %}">Organ Requests</a></li>
+                                    <li><a href="{% url 'organ_donor_list' %}">Organ Donor List</a></li>
+                                </ul>
+                            </li>
+                        {% else %}
+                            <li><a href="{% url 'blog_list' %}">Blog</a></li>
+                            {% if user.is_authenticated and user.donor_profile %}
+                                <li><a href="{% url 'donor_blood_requests' %}">Blood Requests</a></li>
+
+                                <!-- Show "Organ Donation" button if the donor is NOT registered as an organ donor -->
+                                {% if not user.donor_profile.Organdonor %}
+                                    <li><a href="{% url 'register_organ_donor' %}">Organ Donation</a></li>
+                                {% else %}
+                                    <!-- Show "Matching Organ Requests" button if the donor is already registered as an organ donor -->
+                                    <li><a href="{% url 'matching_organ_requests' %}">Matching Organ Requests</a></li>
+                                {% endif %}
+
+
+                            {% endif %}
+                        {% endif %}
+
+                        {% if user.is_authenticated and user.hospital_profile %}
+                            <li class="dropdown">
+                                <a href="#"><span>Blog</span> <i class="bi bi-chevron-down"></i></a>
+                                <ul>
+                                    <li><a href="{% url 'all_blogs' %}">All Blogs</a></li>
+                                    <li><a href="{% url 'my_blogs' %}">My Blogs</a></li>
+                                    <li><a href="{% url 'add_blog' %}">Add a Blog</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+                </nav>
+
+                <a class="cta-btn d-none d-sm-block" href="#" data-bs-toggle="modal" data-bs-target="#chatbotModal">Chat with me</a>
+                <a class="cta-btn" href="#" data-bs-toggle="modal" data-bs-target="#kidneyAnalyzerModal">
+                  <i class="bi bi-activity"></i> Kidney Health
+              </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to logout?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="{% url 'donor_logout' %}" class="btn btn-danger">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chatbot Modal -->
+<div class="modal fade" id="chatbotModal" tabindex="-1" aria-labelledby="chatbotModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="chatbotModalLabel">Lifeline Assistant</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <div id="chatbox" class="bg-light border rounded">
+                  <!-- Chat messages will appear here -->
+                  <div class="bot-message message">
+                      Hello! I'm your Lifeline Assistant. How can I help you with blood or organ donation today?
+                  </div>
+              </div>
+              <div class="input-container">
+                  <input type="text" id="user-input" class="form-control" placeholder="Type your message...">
+                  <button id="send-btn" class="btn btn-primary ms-2">Send</button>
+              </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" id="reset-chat">Reset Chat</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+<!-- Kidney Health Analyzer Modal -->
+<div class="modal fade" id="kidneyAnalyzerModal" tabindex="-1" aria-labelledby="kidneyAnalyzerModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="kidneyAnalyzerModalLabel">Kidney Health Analyzer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" id="kidneyForm" action="{% url 'predict_kidney_disease' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="id_age" class="form-label">Age</label>
+            <input type="number" name="age" class="form-control" id="id_age" required>
+          </div>
+          <div class="mb-3">
+            <label for="id_gender" class="form-label">Gender</label>
+            <select name="gender" class="form-select" id="id_gender" required>
+              <option value="">Select Gender</option>
+              <option value="0">Female</option>
+              <option value="1">Male</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="id_diabetic" class="form-label">Diabetic</label>
+            <select name="diabetic" class="form-select" id="id_diabetic" required>
+              <option value="">Select Option</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="id_smoker" class="form-label">Smoker</label>
+            <select name="smoker" class="form-select" id="id_smoker" required>
+              <option value="">Select Option</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="id_drinker" class="form-label">Alcohol Consumption</label>
+            <select name="drinker" class="form-select" id="id_drinker" required>
+              <option value="">Select Option</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="id_bmi" class="form-label">BMI</label>
+            <input type="number" name="bmi" step="0.01" class="form-control" id="id_bmi" required>
+            <div class="form-text">Body Mass Index (weight in kg / height in m²)</div>
+          </div>
+          <div class="mb-3">
+            <label for="id_family_history" class="form-label">Family History of Kidney Disease</label>
+            <select name="family_history" class="form-select" id="id_family_history" required>
+              <option value="">Select Option</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Analyze Risk</button>
+        </form>
+        
+        <div id="result-section" class="mt-4 d-none">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="mb-0">Your Analysis Results</h5>
+            </div>
+            <div class="card-body">
+              <div id="prediction-result" class="text-center mb-3">
+                <h4 id="prediction-text" class="mb-2"></h4>
+                <div class="progress mb-2">
+                  <div id="probability-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <p id="probability-text" class="text-muted"></p>
+              </div>
+              <div id="suggestions-section">
+                <h5>Suggestions to Improve Kidney Health:</h5>
+                <ul id="suggestions-list" class="list-group list-group-flush">
+                  <!-- Suggestions will be added here -->
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="reset-analyzer">Reset</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <!-- Chatbot Script -->
+     <!-- Chatbot Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const userInput = document.getElementById('user-input');
+      const sendBtn = document.getElementById('send-btn');
+      const chatbox = document.getElementById('chatbox');
+      const resetBtn = document.getElementById('reset-chat');
+
+      // Function to add messages to the chatbox
+      function addMessage(message, isUser) {
+          const messageDiv = document.createElement('div');
+          messageDiv.classList.add('message');
+          messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+          messageDiv.textContent = message;
+          chatbox.appendChild(messageDiv);
+          chatbox.scrollTop = chatbox.scrollHeight;
+      }
+
+      // Function to send message to backend
+      async function sendMessage(message) {
+          try {
+              const response = await fetch('{% url "chatbot" %}', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': getCookie('csrftoken')
+                  },
+                  body: JSON.stringify({ user_input: message })
+              });
+
+              if (!response.ok) {
+                  throw new Error('Network response was not ok');
+              }
+
+              const data = await response.json();
+              addMessage(data.response, false);
+          } catch (error) {
+              console.error('Error:', error);
+              addMessage('Sorry, I had trouble connecting. Please try again.', false);
+          }
+      }
+
+      // Function to get CSRF token
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+
+      // Send message on button click
+      sendBtn.addEventListener('click', function() {
+          const message = userInput.value.trim();
+          if (message) {
+              addMessage(message, true);
+              sendMessage(message);
+              userInput.value = '';
+          }
+      });
+
+      // Send message on Enter key
+      userInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+              const message = userInput.value.trim();
+              if (message) {
+                  addMessage(message, true);
+                  sendMessage(message);
+                  userInput.value = '';
+              }
+          }
+      });
+
+      // Reset chat
+      resetBtn.addEventListener('click', function() {
+          // Clear chat messages except the first greeting
+          while (chatbox.childElementCount > 1) {
+              chatbox.removeChild(chatbox.lastChild);
+          }
+          
+          // Reset session on server
+          fetch('{% url "chatbot" %}', {
+              method: 'GET',
+              headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+              }
+          });
+      });
+  });
+
+  // Kidney Health Analyzer Script
+document.addEventListener('DOMContentLoaded', function() {
+    const kidneyForm = document.getElementById('kidneyForm');
+    const resultSection = document.getElementById('result-section');
+    const predictionText = document.getElementById('prediction-text');
+    const probabilityBar = document.getElementById('probability-bar');
+    const probabilityText = document.getElementById('probability-text');
+    const suggestionsList = document.getElementById('suggestions-list');
+    const resetButton = document.getElementById('reset-analyzer');
+
+    if (kidneyForm) {
+        kidneyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show loading state
+            const submitBtn = kidneyForm.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Analyzing...';
+            submitBtn.disabled = true;
+            
+            // Get form data
+            const formData = new FormData(kidneyForm);
+            
+            // Send AJAX request
+            fetch(kidneyForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Update results
+                predictionText.textContent = data.prediction;
+                predictionText.className = 'mb-2'; // Reset classes
+                
+                // Set color based on risk level
+                if (data.prediction === 'High Risk') {
+                    predictionText.classList.add('text-danger');
+                    probabilityBar.classList.add('bg-danger');
+                } else {
+                    predictionText.classList.add('text-success');
+                    probabilityBar.classList.add('bg-success');
+                }
+                
+                // Update probability
+                probabilityBar.style.width = data.probability + '%';
+                probabilityText.textContent = `Risk probability: ${data.probability}%`;
+                
+                // Update suggestions
+                suggestionsList.innerHTML = '';
+                data.suggestions.forEach(suggestion => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item';
+                    li.textContent = suggestion;
+                    suggestionsList.appendChild(li);
+                });
+                
+                // Show results section
+                resultSection.classList.remove('d-none');
+                
+                // Reset button state
+                submitBtn.innerHTML = 'Analyze Risk';
+                submitBtn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('There was an error processing your request. Please try again.');
+                
+                // Reset button state
+                submitBtn.innerHTML = 'Analyze Risk';
+                submitBtn.disabled = false;
+            });
+        });
+        
+        // Reset form
+        resetButton.addEventListener('click', function() {
+            kidneyForm.reset();
+            resultSection.classList.add('d-none');
+        });
+    }
+});
+</script>
+    
+</body>
+</html>

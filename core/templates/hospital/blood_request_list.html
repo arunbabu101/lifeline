@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blood Requests - Lifeline</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <style>
+        .nav-pills .nav-link.active {
+            background-color: #dc3545;
+        }
+        .nav-pills .nav-link {
+            color: #495057;
+        }
+        .blood-type {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #dc3545;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .request-card {
+            transition: transform 0.2s;
+            border-left: 4px solid #dc3545;
+        }
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 0.5em 1em;
+        }
+        .status-pending { background-color: #ffc107; }
+        .status-fulfilled { background-color: #28a745; }
+        .status-cancelled { background-color: #6c757d; }
+        .history-section {
+            background-color: #f8f9fa;
+        }
+        .action-button {
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <h1 class="mb-4 text-primary">Blood Requests</h1>
+        
+        <!-- Navigation Pills -->
+        <ul class="nav nav-pills mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" href="#active">Active Requests</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#history">History</a>
+            </li>
+            <li class="nav-item ms-auto">
+                <a class="btn btn-danger" href="{% url 'create_blood_request' %}">
+                    <i class="fas fa-plus"></i> New Blood Request
+                </a>
+            </li>
+        </ul>
+
+        <div class="row">
+            {% for request in requests %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card request-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">{{ request.blood_group }}</h5>
+                            <span class="status-badge status-{{ request.status|lower }}">
+                                {{ request.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-user me-2"></i>{{ request.patient_name }}
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-tint me-2"></i>{{ request.units_required }} units
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-calendar me-2"></i>Required by: {{ request.required_by|date:"M d, Y" }}
+                        </div>
+                        <div class="text-end mt-3">
+                            <a href="{% url 'blood_request_detail' request.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No active blood requests found.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    
+
+        <!-- History Section -->
+        <div id="history" class="history-section p-4 rounded">
+            <h2 class="h4 mb-4">Request History</h2>
+            {% for request in history_requests %}
+            <div class="card request-card mb-3">
+                <div class="card-body d-flex align-items-center">
+                    <div class="blood-type me-4">
+                        {{ request.blood_group }}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="status-badge badge rounded-pill 
+                                {% if request.status == 'pending' %}status-pending
+                                {% elif request.status == 'fulfilled' %}status-fulfilled
+                                {% else %}status-cancelled{% endif %}">
+                                {{ request.get_status_display }}
+                            </span>
+                            <small class="text-muted">Required by: {{ request.required_by|date:"M d, Y" }}</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Request ID: #{{ request.id }}</small>
+                            </div>
+                            <a href="{% url 'blood_request_detail' request.id %}" 
+                               class="btn btn-outline-primary action-button">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% if not history_requests %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No historical requests found.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize Bootstrap components
+        document.addEventListener('DOMContentLoaded', function() {
+            var navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Remove active class from all links
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    // Show corresponding section
+                    var targetId = this.getAttribute('href').substring(1);
+                    document.querySelectorAll('#active, #history').forEach(section => {
+                        section.style.display = section.id === targetId ? 'block' : 'none';
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+{% endblock %}

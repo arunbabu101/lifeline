@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Donor Information -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Your Donor Profile</h5>
+            <p class="mb-1"><strong>Blood Group:</strong> {{ donor.blood_group }}</p>
+            <p class="mb-1"><strong>District:</strong> {{ donor.district }}</p>
+            <p class="mb-0"><strong>Registered Organs:</strong> 
+                {% for organ in organ_donor.organs.all %}
+                    {{ organ.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            
+        </div>
+    </div>
+
+    <a class="cta-btn" href="{% url 'register_organ_donor' %}" >
+        <i class="bi bi-activity"></i> Edit your Willingness
+    </a>
+    <!-- Matched Requests -->
+    {% if matched_requests %}
+        <h2 class="mb-3">Your Matched Requests</h2>
+        <div class="row g-4">
+            {% for request in matched_requests %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ request.organ_type.name }} needed</h5>
+                            <p class="mb-1"><strong>Hospital:</strong> {{ request.hospital.name }}</p>
+                            <p class="mb-1"><strong>Patient Name:</strong> {{ request.patient_name }}</p>
+                            <p class="mb-1"><strong>Blood Group:</strong> {{ request.patient_blood_group }}</p>
+                            <p class="mb-1"><strong>Urgency:</strong> 
+                                <span class="badge {% if request.urgency_level == 3 %}bg-danger{% elif request.urgency_level == 2 %}bg-warning{% else %}bg-info{% endif %}">
+                                    {{ request.get_urgency_level_display }}
+                                </span>
+                            </p>
+                            <p class="mb-1"><strong>Matched On:</strong> {{ request.updated_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Donation History -->
+    <h2 class="mb-3 mt-5">Donation History</h2>
+    {% if completed_donations %}
+        <div class="row g-4">
+            {% for donation in completed_donations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ donation.organ_type.name }} Donation</h5>
+                            <p class="mb-1"><strong>Hospital:</strong> {{ donation.hospital.name }}</p>
+                            <p class="mb-1"><strong>Patient Name:</strong> {{ donation.patient_name }}</p>
+                            <p class="mb-1"><strong>Blood Group:</strong> {{ donation.patient_blood_group }}</p>
+                            <p class="mb-1"><strong>Donation Date:</strong> {{ donation.updated_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">You have not completed any donations yet.</div>
+    {% endif %}
+
+    <!-- Matching Local Requests -->
+    <h2 class="mb-3 mt-5">Matching Requests in Your District</h2>
+    {% if matching_requests %}
+        <div class="row g-4">
+            {% for request in matching_requests %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ request.organ_type.name }} needed</h5>
+                            <p class="mb-1"><strong>Hospital:</strong> {{ request.hospital.name }}</p>
+                            <p class="mb-1"><strong>Blood Group:</strong> {{ request.patient_blood_group }}</p>
+                            <p class="mb-1"><strong>Urgency:</strong> 
+                                <span class="badge {% if request.urgency_level == 3 %}bg-danger{% elif request.urgency_level == 2 %}bg-warning{% else %}bg-info{% endif %}">
+                                    {{ request.get_urgency_level_display }}
+                                </span>
+                            </p>
+                            <p class="mb-1"><strong>Created:</strong> {{ request.created_at|timesince }} ago</p>
+                            <button class="btn btn-primary mt-3" 
+                                    onclick="respondToRequest('{{ request.id }}')">
+                                Respond to Request
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">No matching requests in your district at this time.</div>
+    {% endif %}
+</div>
+
+<script>
+function respondToRequest(requestId) {
+    if (confirm('Are you sure you want to respond to this organ donation request?')) {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/api/organ-request/${requestId}/respond/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Thank you for responding! The hospital will contact you shortly.');
+                location.reload();
+            } else {
+                alert(data.message || 'An error occurred. Please try again.');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

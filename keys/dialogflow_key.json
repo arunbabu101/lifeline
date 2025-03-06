@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "donationhelperbot-qqmw",
+  "private_key_id": "611c4fd910855d310173a6d40807fd8f52a5ffdf",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCiN6ofjjKRx8RD\nIa0XKBVSQqPXaWblMGv/NCbovXv2njw9DDWZpYibyuYl2q3We8KW+XWIGwzKC7ck\n1Aq1lUKY1/enZSpk3/bl3+1XBIwlCqjNNAQns6LGzOHRdozzW8913xZ/yIHSfMa5\nzG40adKigOaEP6zd4CsakB4muF9UBMK4w6oQL5qnkomBptqoZ/b1lT3yXlrCYril\nBnlvfQqnsvuKWnVr4cg1mqRi5212843UYvKiCcMI+DBVPnQ3S0tIl0YkjSwv92Qp\njYQ5aMpo2C80tDZvtRIKHHhmbAk9tl2dwRPL2gJD3+dfgf3W1U7AvMOCE4NzckQf\n4CAPZBINAgMBAAECggEATV/3ya1t+ZMrzkmV4mHAKciXlfw0lEWQfd5GYOVg57V6\nTjQwrOUEUCtrs8qm+JN3scOziAQ/CXClHu/1W7+iUH1TJ4ldu1gI0IULFGKa5mA7\nPAX/pWBN2D2JyPufJ8U3I6YReUoOgnP55k3Yky+WxORvD82/iuWOKdFsUFPJRK1t\nOMRJIR93YOCXbFSXvSo5kbFntrAVkVGkFcHFNOJVW+9z33ewhWqQ3ZEyMpCy/L4n\naASxHZIZJmJhZ5jAFyC8O5mMoY/xHhitKIsWNESU5hXMtchnvlWytvcWbrxvyNky\nqNC38C91lR+mVGOno5RX512I44zKVMGxSPoUeLQRkQKBgQDhrjMIEcgQVU2v4NpK\nt8b0ybib+Bk9CPhYzOMgcHTr2Ll/oW4aiLBXOia/WV4XMpgYaDbv7BaGWknILL5p\nL+xM7THDp4T7Lo3D5yQyPo/2qQDuuJsx5bHUKONRSHwm8VOwxgf0rJ9/RPKZ76N6\nGOdF9ODCp40myxBDzq+k7XFfuwKBgQC4AsoCKIaXIHHsB8F9Wh/0SGbsZuVD+TvQ\ngJhEiKZagcIofDzGWxfWyqCLi7DtmE4wz33th+ZGidU569DK/STarmwXkzylo2ql\nyRNXjc6hR+0cbBH2XYyFFtUh9YYGF4G7uxkgr9uhpu4gOzYsaqkNH2l7IOgxeH26\n6jR3Lc1E1wKBgQDAZD9A+9ewhOhLrcaqt+02tdlZrbHmZIVDPrfJ6dTjUskg00AI\nAstCMWLi8Y7S++DJvd5Hvt6c/s+zhOF2ztIF6pfoEiG9+LwGbEBhTRBx2TXgTSSQ\n7x4gnhLcMo0UrdsI8mnJ3nfCicbAEJku95gB/Xa2uxwMHETraYI3eeyTDQKBgEAo\nKMqr2pFirJXA9oOAItgHTmtqTNFwWpyN2Yk7o9S2nT2EY6Q9KoinSWaeI+gTTF/U\nWHGzCmTZtdBmGfxMWscsPV/S5DhUS+DVxLqoJL0y2McqHvEpGM9mcJVQh5QkKgWM\nbGxrJEaubyQpwO+nmJ2MsDhP9uUYv62l7vkGrSUtAoGAJuIK4zrZy4CvpkMurNJ5\nkaek98XICk80WzzpdAO2EnMxh+U4b+3i5L+JJptvt0wyl/dz+jVqFBMCycdSZFv8\nbKOYvAZ/nH0Itl7sS4J81K+M2wHBhU1EyDpExsTWmhtEwRqCF51mqYGrCHmxVA6V\np3Ei9C+WPJ7iLgKAuf+WuQk=\n-----END PRIVATE KEY-----\n",
+  "client_email": "donationhelper@donationhelperbot-qqmw.iam.gserviceaccount.com",
+  "client_id": "101009816634324494602",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/donationhelper%40donationhelperbot-qqmw.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

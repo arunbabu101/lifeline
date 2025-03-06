@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Add New Blog</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="blog-form">
+                        {% csrf_token %}
+                        
+                        <!-- Title Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+                            {{ form.title }}
+                            <div class="invalid-feedback">Please provide a title.</div>
+                        </div>
+
+                        <!-- Category Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                            {{ form.category }}
+                            <div class="invalid-feedback">Please select a category.</div>
+                        </div>
+
+                        <!-- Featured Image Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.featured_image.id_for_label }}" class="form-label">Featured Image</label>
+                            {{ form.featured_image }}
+                            <div class="invalid-feedback">Please upload a featured image.</div>
+                        </div>
+
+                        <!-- Content Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">Content</label>
+                            {{ form.content }}
+                            <div class="invalid-feedback">Please provide blog content.</div>
+                        </div>
+
+                        <!-- Tags Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+                            {{ form.tags }}
+                            <small class="form-text text-muted">Separate tags with commas (e.g., health, tips, blood).</small>
+                            <div class="invalid-feedback">Please provide at least one tag.</div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Publish Blog</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom CSS -->
+{% block extra_css %}
+<style>
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0;
+    }
+    .form-control {
+        border-radius: 5px;
+        padding: 10px;
+    }
+    .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
+    }
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 18px;
+    }
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+    .invalid-feedback {
+        display: none;
+        color: #dc3545;
+    }
+    .was-validated .form-control:invalid ~ .invalid-feedback {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+<!-- Custom JavaScript -->
+{% block extra_js %}
+<script>
+    // Form Validation
+    document.getElementById('blog-form').addEventListener('submit', function (event) {
+        if (!this.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        this.classList.add('was-validated');
+    });
+
+    // Preview Featured Image
+    document.getElementById('{{ form.featured_image.id_for_label }}').addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const preview = document.createElement('img');
+                preview.src = e.target.result;
+                preview.classList.add('img-preview', 'mt-3', 'img-fluid');
+                const existingPreview = document.querySelector('.img-preview');
+                if (existingPreview) {
+                    existingPreview.replaceWith(preview);
+                } else {
+                    event.target.parentNode.appendChild(preview);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

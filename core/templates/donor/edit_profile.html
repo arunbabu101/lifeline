@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-transparent">
+          <h5 class="mb-0">Edit Profile</h5>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+          {% csrf_token %}
+
+          <!-- Profile Picture Section -->
+          <div class="mb-4 text-center">
+            {% if user.donor_profile.profile_pic %}
+              <img 
+                src="{{ user.donor_profile.profile_pic.url }}" 
+                alt="Profile Picture" 
+                class="rounded-circle" 
+                style="width: 150px; height: 150px; object-fit: cover;">
+            {% else %}
+              <img 
+                src="{% static 'img/default_profile.png' %}" 
+                alt="Default Profile Picture" 
+                class="rounded-circle" 
+                style="width: 150px; height: 150px; object-fit: cover;">
+            {% endif %}
+            <div class="mt-2">
+              <label for="profile_pic" class="form-label">Change Profile Photo</label>
+              {{ donor_form.profile_pic }}
+              {% if donor_form.profile_pic.errors %}
+                <div class="invalid-feedback">{{ donor_form.profile_pic.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- First Name and Last Name -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="first_name" class="form-label">First Name</label>
+              {{ user_form.first_name }}
+              {% if user_form.first_name.errors %}
+                <div class="invalid-feedback">{{ user_form.first_name.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="last_name" class="form-label">Last Name</label>
+              {{ user_form.last_name }}
+              {% if user_form.last_name.errors %}
+                <div class="invalid-feedback">{{ user_form.last_name.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="mb-4">
+            <label for="phone" class="form-label">Phone Number</label>
+            {{ donor_form.phone }}
+            {% if donor_form.phone.errors %}
+              <div class="invalid-feedback">{{ donor_form.phone.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+
+          <!-- District and Weight -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <label for="district" class="form-label">District</label>
+              {{ donor_form.district }}
+              {% if donor_form.district.errors %}
+                <div class="invalid-feedback">{{ donor_form.district.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label for="weight" class="form-label">Weight (kg)</label>
+              {{ donor_form.weight }}
+              {% if donor_form.weight.errors %}
+                <div class="invalid-feedback">{{ donor_form.weight.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Last Donated -->
+          <div class="mb-4">
+            <label for="last_donated" class="form-label">Last Donated</label>
+            {{ donor_form.last_donated }}
+            {% if donor_form.last_donated.errors %}
+              <div class="invalid-feedback">{{ donor_form.last_donated.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Form Buttons -->
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{% url 'donor_profile' %}" class="btn btn-secondary me-md-2">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

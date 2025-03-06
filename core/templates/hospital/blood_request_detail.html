@@ -1,0 +1,496 @@
+{# blood_request_detail.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<!-- Previous CSS remains the same -->
+<style>
+    /* Add new styles */
+    .detail-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        padding: 0.5em 1em;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+    .donor-card {
+        transition: transform 0.2s;
+    }
+    .donor-card:hover {
+        transform: translateY(-2px);
+    }
+    .stats-card {
+        background: linear-gradient(45deg, #4b6cb7, #182848);
+        color: white;
+        border-radius: 8px;
+    }
+    .donation-form {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        border: 1px solid #dee2e6;
+    }
+    .donor-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .response-help-tabs {
+        margin-bottom: 1.5rem;
+    }
+    /* Previous styles remain same */
+    .donor-contact-details {
+        background-color: #f8f9fa;
+        border-left: 4px solid #0d6efd;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    .contact-icon {
+        width: 24px;
+        color: #6c757d;
+        text-align: center;
+        margin-right: 10px;
+    }
+</style>
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Stats Section with clickable cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card p-3" role="button" data-bs-toggle="collapse" data-bs-target="#responsesSection">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ response_count }}</h3>
+                        <p class="mb-0">Responds</p>
+                    </div>
+                    <i class="fas fa-hand-holding-medical fa-2x"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card p-3" role="button" data-bs-toggle="collapse" data-bs-target="#helpsSection">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3 class="mb-0">{{ help_count }}</h3>
+                        <p class="mb-0">Helps</p>
+                    </div>
+                    <i class="fas fa-heart fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collapsible Responses Section -->
+    <div class="collapse mb-4" id="responsesSection">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Donor Responses</h5>
+            </div>
+            <div class="card-body">
+                {% for response in responses %}
+                <div class="donor-card mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ response.donor.get_name }}</h6>
+                            <p class="mb-0 text-muted">
+                                <small>Responded on: {{ response.created_at|date:"M d, Y" }}</small>
+                            </p>
+                        </div>
+                        <span class="badge bg-{{ response.status }}">{{ response.get_status_display }}</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No responses yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Collapsible Helps Section -->
+    <div class="collapse mb-4" id="helpsSection">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Donor Helps</h5>
+            </div>
+            <div class="card-body">
+                {% for help in helps %}
+                <div class="donor-card mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">{{ help.donor.get_name }}</h6>
+                            <p class="mb-0">{{ help.message }}</p>
+                            <small class="text-muted">Offered help on: {{ help.created_at|date:"M d, Y" }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No helps offered yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Details Card -->
+    <div class="card detail-card mb-4">
+        <div class="card-header bg-transparent">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Blood Request Details</h3>
+                <div>
+                    {% if request.status == 'pending' %}
+                    <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editRequestModal">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelRequestModal">
+                        <i class="fas fa-times"></i> Cancel Request
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="text-muted">Blood Group</label>
+                        <h5>{{ request.blood_group }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Units Required</label>
+                        <h5>{{ request.units_required }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Patient</label>
+                        <h5>{{ request.patient_name }}</h5>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="text-muted">Status</label>
+                        <h5><span class="status-badge status-{{ request.status|lower }}">
+                            {{ request.get_status_display }}
+                        </span></h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Required By</label>
+                        <h5>{{ request.required_by|date:"M d, Y" }}</h5>
+                    </div>
+                    <div class="mb-3">
+                        <label class="text-muted">Gender</label>
+                        <h5>{{ request.get_patient_gender_display }}</h5>
+                    </div>
+                </div>
+            </div>
+
+            {% if request.reason %}
+            <div class="mt-4">
+                <label class="text-muted">Reason</label>
+                <div class="p-3 bg-light rounded">
+                    {{ request.reason }}
+                </div>
+            </div>
+            {% endif %}
+
+        
+        {% if donations %}
+        <div class="card-body border-top">
+            <h5 class="mb-3">Blood Donations</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Donor Name</th>
+                            <th>Blood Group</th>
+                            <th>Donation Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for donation in donations %}
+                        <tr>
+                            <td>{{ donation.donor.get_name }}</td>
+                            <td>{{ donation.donor.blood_group }}</td>
+                            <td>{{ donation.donation_date|date:"M d, Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if show_blood_received %}
+        <div class="blood-receipt-section">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-question-circle text-primary fa-2x me-3"></i>
+                <div>
+                    <h5 class="mb-1">Blood Receipt Confirmation</h5>
+                    <p class="text-muted mb-0">Please confirm if you have received the required blood units</p>
+                </div>
+            </div>
+            
+            <form method="post" class="blood-receipt-buttons">
+                {% csrf_token %}
+                <button type="submit" name="blood_received" value="yes" class="btn btn-success">
+                    <i class="fas fa-check me-2"></i>Yes, Record Donations
+                </button>
+                <button type="submit" name="blood_received" value="no" class="btn btn-danger">
+                    <i class="fas fa-times me-2"></i>Not Yet
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if show_donation_form %}
+        <div class="donation-form">
+            <h5 class="mb-3">Record Blood Donations</h5>
+            <form method="post">
+                {% csrf_token %}
+                {% for i in units_required %}
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Select Donor {{ forloop.counter }}</label>
+                        <select name="donor" class="form-select" required>
+                            <option value="">Choose donor...</option>
+                            {% for response in responses %}
+                            <option value="{{ response.donor.id }}">{{ response.donor.get_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Donation Date</label>
+                        <input type="date" name="donation_date" class="form-control" required>
+                    </div>
+                </div>
+                {% endfor %}
+                <button type="submit" name="submit_donations" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Record Donations
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+ <!-- Matching Donors Section -->
+ <div class="card detail-card">
+    <div class="card-header bg-transparent">
+        <h4 class="mb-0">Matching Donors ({{ matching_donors.count }})</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for donor in matching_donors %}
+            <div class="col-md-4 mb-3">
+                <div class="card donor-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="donor-avatar me-3">
+                                <i class="fas fa-user-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">{{ donor.get_name }}</h5>
+                                <span class="badge bg-primary">{{ donor.blood_group }}</span>
+                            </div>
+                        </div>
+                        <p class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2"></i>{{ donor.district }}
+                        </p>
+                        <button class="btn btn-primary btn-sm w-100" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#contactModal" 
+                                data-donor-id="{{ donor.id }}">
+                                <div class="card-footer bg-transparent">
+                                    <a href="{% url 'contact_donor' donor.id %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-comment-medical me-2"></i>Contact Donor
+                                    </a>
+                                </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>No matching donors found in this district.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Edit Request Modal -->
+<div class="modal fade" id="editRequestModal" tabindex="-1">
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Edit Blood Request</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form action="{% url 'edit_blood_request' request.id %}" method="post" id="editRequestForm">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div id="formContent">
+                    <!-- Form will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+
+<!-- Cancel Request Modal -->
+<div class="modal fade" id="cancelRequestModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="cancelModalLabel">
+                <i class="fas fa-exclamation-triangle me-2"></i>Cancel Blood Request
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="text-center mb-4">
+                <i class="fas fa-times-circle text-danger fa-4x mb-3"></i>
+                <h5>Are you sure you want to cancel this blood request?</h5>
+                <p class="text-muted">This action cannot be undone. All associated donor responses will be notified.</p>
+            </div>
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Request Details:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Blood Group: {{ request.blood_group }}</li>
+                    <li>Units Required: {{ request.units_required }}</li>
+                    <li>Patient: {{ request.patient_name }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="fas fa-times me-2"></i>No, Keep It
+            </button>
+            <form id="cancelRequestForm" action="{% url 'cancel_blood_request' request.id %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-check me-2"></i>Yes, Cancel Request
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+{% block extra_js %}
+<script>
+    // Add this JavaScript to your page
+document.addEventListener('DOMContentLoaded', function() {
+    const editModal = document.getElementById('editRequestModal');
+    const formContent = document.getElementById('formContent');
+    
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', async function(event) {
+            try {
+                // Get the current blood request data using Django template variables
+                const requestData = {
+                    blood_group: '{{ request.blood_group|escapejs }}',
+                    units_required: parseInt('{{ request.units_required }}'),
+                    patient_name: '{{ request.patient_name|escapejs }}',
+                    patient_age: parseInt('{{ request.patient_age }}'),
+                    patient_gender: '{{ request.patient_gender|escapejs }}',
+                    required_by: '{{ request.required_by|date:"Y-m-d"|escapejs }}',
+                    reason: '{{ request.reason|default:""|escapejs }}'
+                };
+
+                // Generate form HTML using JavaScript template literals
+                const formHTML = `
+                    <div class="mb-3">
+                        <label class="form-label">Blood Group</label>
+                        <select name="blood_group" class="form-select" required>
+                            <option value="A+" ${requestData.blood_group === 'A+' ? 'selected' : ''}>A+</option>
+                            <option value="A-" ${requestData.blood_group === 'A-' ? 'selected' : ''}>A-</option>
+                            <option value="B+" ${requestData.blood_group === 'B+' ? 'selected' : ''}>B+</option>
+                            <option value="B-" ${requestData.blood_group === 'B-' ? 'selected' : ''}>B-</option>
+                            <option value="AB+" ${requestData.blood_group === 'AB+' ? 'selected' : ''}>AB+</option>
+                            <option value="AB-" ${requestData.blood_group === 'AB-' ? 'selected' : ''}>AB-</option>
+                            <option value="O+" ${requestData.blood_group === 'O+' ? 'selected' : ''}>O+</option>
+                            <option value="O-" ${requestData.blood_group === 'O-' ? 'selected' : ''}>O-</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Units Required</label>
+                        <input type="number" name="units_required" class="form-control" 
+                               value="${requestData.units_required}" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Patient Name</label>
+                        <input type="text" name="patient_name" class="form-control" 
+                               value="${requestData.patient_name}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Patient Age</label>
+                        <input type="number" name="patient_age" class="form-control" 
+                               value="${requestData.patient_age}" min="0" max="101" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Patient Gender</label>
+                        <select name="patient_gender" class="form-select" required>
+                            <option value="M" ${requestData.patient_gender === 'M' ? 'selected' : ''}>Male</option>
+                            <option value="F" ${requestData.patient_gender === 'F' ? 'selected' : ''}>Female</option>
+                            <option value="O" ${requestData.patient_gender === 'O' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Required By</label>
+                        <input type="date" name="required_by" class="form-control" 
+                               value="${requestData.required_by}" 
+                               min="${new Date().toISOString().split('T')[0]}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reason</label>
+                        <textarea name="reason" class="form-control" rows="3">${requestData.reason}</textarea>
+                    </div>
+                `;
+
+                formContent.innerHTML = formHTML;
+            } catch (error) {
+                console.error('Error loading form:', error);
+                formContent.innerHTML = '<div class="alert alert-danger">Error loading form. Please try again.</div>';
+            }
+        });
+
+        // Form validation
+        const editRequestForm = document.getElementById('editRequestForm');
+        editRequestForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            // Basic validation
+            const requiredBy = new Date(this.required_by.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (requiredBy < today) {
+                alert('Required by date cannot be in the past');
+                return;
+            }
+
+            const patientAge = parseInt(this.patient_age.value);
+            if (patientAge > 101) {
+                alert('Patient age must be less than or equal to 101');
+                return;
+            }
+
+            // If validation passes, submit the form
+            this.submit();
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

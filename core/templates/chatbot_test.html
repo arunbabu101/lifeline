@@ -1,0 +1,298 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lifeline Chatbot Test</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #0d6efd;
+            margin-bottom: 30px;
+        }
+        
+        /* Chatbot styling */
+        #chatbox {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            background-color: #f8f9fa;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            margin-left: auto;
+            background-color: #e3f2fd;
+            color: #0d6efd;
+            border-top-right-radius: 0;
+        }
+
+        .bot-message {
+            margin-right: auto;
+            background-color: #f1f1f1;
+            color: #212529;
+            border-top-left-radius: 0;
+        }
+        
+        .status-indicator {
+            font-size: 14px;
+            margin-top: 10px;
+            color: #6c757d;
+        }
+        
+        .test-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .test-button {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container test-container">
+        <h1><i class="bi bi-chat-dots"></i> Lifeline Chatbot Test Page</h1>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <p class="lead">Use this page to test your chatbot's responses to different user inputs.</p>
+                
+                <!-- Chatbot Interface -->
+                <div id="chatbox">
+                    <div class="bot-message message">
+                        Hello! I'm your Lifeline Assistant. How can I help you with blood or organ donation today?
+                    </div>
+                </div>
+                
+                <div class="input-container">
+                    <input type="text" id="user-input" class="form-control" 
+                           placeholder="Type your message...">
+                    <button id="send-btn" class="btn btn-primary ms-2">
+                        <i class="bi bi-send"></i> Send
+                    </button>
+                </div>
+                
+                <div class="status-indicator" id="status">
+                    Ready to chat
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                    <button type="button" class="btn btn-secondary" id="reset-chat">
+                        <i class="bi bi-arrow-clockwise"></i> Reset Chat
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Section -->
+        <div class="test-section">
+            <h3>Quick Test Cases</h3>
+            <p>Click on any of these buttons to test common user queries:</p>
+            
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-primary test-button" data-test="What are the requirements for donating blood?">
+                    Blood Donation Requirements
+                </button>
+                <button class="btn btn-outline-primary test-button" data-test="How does organ donation work?">
+                    Organ Donation Process
+                </button>
+                <button class="btn btn-outline-primary test-button" data-test="Is there an age limit for donors?">
+                    Age Limits Question
+                </button>
+                <button class="btn btn-outline-primary test-button" data-test="How long does it take to recover from donating blood?">
+                    Recovery Time Question
+                </button>
+                <button class="btn btn-outline-primary test-button" data-test="Why should I donate?">
+                    Motivation Question
+                </button>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="{% url 'donor_home' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-house"></i> Back to Main Site
+            </a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    
+    <!-- Chatbot Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const chatbox = document.getElementById('chatbox');
+            const resetBtn = document.getElementById('reset-chat');
+            const statusIndicator = document.getElementById('status');
+            const testButtons = document.querySelectorAll('.test-button');
+            
+            // Function to add messages to the chatbox
+            function addMessage(message, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+                messageDiv.textContent = message;
+                chatbox.appendChild(messageDiv);
+                chatbox.scrollTop = chatbox.scrollHeight;
+            }
+            
+            // Function to update status
+            function updateStatus(message, isError = false) {
+                statusIndicator.textContent = message;
+                if (isError) {
+                    statusIndicator.style.color = '#dc3545';
+                } else {
+                    statusIndicator.style.color = '#6c757d';
+                }
+            }
+
+            // Function to send message to backend
+            async function sendMessage(message) {
+                try {
+                    updateStatus('Sending message...');
+                    
+                    const response = await fetch('{% url "chatbot" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({ user_input: message })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+                    addMessage(data.response, false);
+                    updateStatus('Message received');
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage('Sorry, I had trouble connecting. Please try again.', false);
+                    updateStatus('Connection error', true);
+                }
+            }
+
+            // Function to get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            // Send message on button click
+            sendBtn.addEventListener('click', function() {
+                const message = userInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    sendMessage(message);
+                    userInput.value = '';
+                    userInput.focus();
+                }
+            });
+
+            // Send message on Enter key
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const message = userInput.value.trim();
+                    if (message) {
+                        addMessage(message, true);
+                        sendMessage(message);
+                        userInput.value = '';
+                    }
+                }
+            });
+
+            // Reset chat
+            resetBtn.addEventListener('click', function() {
+                // Clear chat messages except the first greeting
+                while (chatbox.childElementCount > 1) {
+                    chatbox.removeChild(chatbox.lastChild);
+                }
+                
+                updateStatus('Resetting chat...');
+                
+                // Reset session on server
+                fetch('{% url "chatbot" %}', {
+                    method: 'GET',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                }).then(() => {
+                    updateStatus('Chat reset complete');
+                }).catch(() => {
+                    updateStatus('Failed to reset chat session', true);
+                });
+                
+                userInput.focus();
+            });
+            
+            // Test buttons functionality
+            testButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const testMessage = this.getAttribute('data-test');
+                    userInput.value = testMessage;
+                    addMessage(testMessage, true);
+                    sendMessage(testMessage);
+                    userInput.value = '';
+                });
+            });
+            
+            // Focus input on page load
+            userInput.focus();
+        });
+    </script>
+</body>
+</html>
