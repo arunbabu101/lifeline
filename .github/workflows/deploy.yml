@@ -57,8 +57,9 @@ jobs:
             docker rm lifeline
           fi
 
-          # Run the new container
+          # Run the new containerr
           docker run -d --name lifeline -p 8000:8000 arunbabu101/lifeline:${{ github.sha }}
+
 
           # Clean up unused Docker resources
           docker system prune -af
